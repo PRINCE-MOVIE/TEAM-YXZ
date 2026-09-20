@@ -1,4 +1,4 @@
-const API_BASE = "http://51.75.118.170:20041/api/v1";
+const API_BASE = "http://51.75.118.170:20041";
 const PROXY = "https://api.allorigins.win/raw?url=";
 
 async function api(path, params = {}) {
