@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRINCE MOVIE — Streaming VF & VOSTFR</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo">PRINCE MOVIE</a>
+    <nav>
+      <a href="index.html" class="active" data-tab="movies">Films</a>
+      <a href="#" data-tab="series">Séries</a>
+      <a href="#" data-tab="anime">Animés</a>
+      <a href="#" data-tab="dramas">K-Dramas</a>
+      <a href="#" data-tab="webtoons">Webtoons</a>
+    </nav>
+    <div class="search-box">
+      <input id="searchInput" type="text" placeholder="Rechercher..." minlength="2">
+      <button onclick="doSearch()">🔍</button>
+    </div>
+  </header>
+
+  <main>
+    <h1 class="section-title" id="title">Films</h1>
+    <div id="app"><div class="loader">Chargement</div></div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script>
+    let currentTab = "movies";
+    let currentPage = 1;
+
+    const TITLES = {
+      movies: "Films", series: "Séries", anime: "Animés",
+      dramas: "K-Dramas", webtoons: "Webtoons"
+    };
+
+    document.querySelectorAll("nav a").forEach(a => {
+      a.onclick = (e) => {
+        e.preventDefault();
+        document.querySelectorAll("nav a").forEach(x => x.classList.remove("active"));
+        a.classList.add("active");
+        currentTab = a.dataset.tab;
+        currentPage = 1;
+        document.getElementById("title").textContent = TITLES[currentTab];
+        loadTab();
+      };
+    });
+
+    async function loadTab() {
+      const app = document.getElementById("app");
+      const pag = document.getElementById("pagination");
+      app.innerHTML = `<div class="loader">Chargement</div>`;
+      pag.innerHTML = "";
+
+      try {
+        const json = await api(`/${currentTab}`, { page: currentPage });
+        renderGrid(json.data);
+        renderPagination(json.meta);
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+
+    function renderGrid(items) {
+      const app = document.getElementById("app");
+      if (!items.length) { app.innerHTML = "<p>Aucun résultat.</p>"; return; }
+
+      app.innerHTML = `<div class="grid">` + items.map(item => {
+        const detailPage = {
+          movies: "film.html",
+          series: "serie.html",
+          anime: "anime.html",
+          dramas: "drama.html",
+          webtoons: "webtoon.html"
+        }[item.type === "movie" ? "movies" : item.type === "series" ? "series" : item.type] || "film.html";
+
+        const badgeClass = item.version === "VOSTFR" ? "vostfr" : item.version === "TrueFrench" ? "truefrench" : "";
+        const extra = item.latest_episode ? `<div class="tag">${item.latest_episode}</div>` : "";
+        const extra2 = item.latest_chapter ? `<div class="tag">${item.latest_chapter}</div>` : "";
+
+        return `
+          <a class="card" href="${detailPage}?slug=${item.slug}">
+            <img src="${item.image}" alt="${item.title}" loading="lazy" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22300%22/%3E%3C/svg%3E'">
+            <div class="info">
+              <strong>${item.title}</strong>
+              <span class="badge ${badgeClass}">${item.version}</span>
+              ${extra}${extra2}
+            </div>
+          </a>`;
+      }).join("") + `</div>`;
+    }
+
+    function renderPagination(meta) {
+      if (!meta || meta.last_page <= 1) return;
+      const pag = document.getElementById("pagination");
+      const total = meta.last_page;
+      let html = `<button ${currentPage === 1 ? "disabled" : ""} onclick="goPage(${currentPage - 1})">« Précédent</button>`;
+
+      const start = Math.max(1, currentPage - 2);
+      const end = Math.min(total, currentPage + 2);
+      for (let i = start; i <= end; i++) {
+        html += `<button class="${i === currentPage ? "active" : ""}" onclick="goPage(${i})">${i}</button>`;
+      }
+      html += `<button ${currentPage === total ? "disabled" : ""} onclick="goPage(${currentPage + 1})">Suivant »</button>`;
+      pag.innerHTML = html;
+    }
+
+    function goPage(p) {
+      currentPage = p;
+      loadTab();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function doSearch() {
+      const q = document.getElementById("searchInput").value.trim();
+      if (q.length < 2) return alert("Minimum 2 caractères");
+      location.href = `recherche.html?q=${encodeURIComponent(q)}`;
+    }
+
+    document.getElementById("searchInput").addEventListener("keypress", e => {
+      if (e.key === "Enter") doSearch();
+    });
+
+    loadTab();
+  </script>
+</body>
+        </html>
