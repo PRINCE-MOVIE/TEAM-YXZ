@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recherche — PRINCE MOVIE</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+</head>
+<body class="netflix-mode">
+  <header>
+    <a href="index.html" class="logo">
+      <svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#f5b400"/>
+            <stop offset="50%" stop-color="#ff8a00"/>
+            <stop offset="100%" stop-color="#f5b400"/>
+          </linearGradient>
+        </defs>
+        <text x="0" y="30" font-family="Arial Black, sans-serif" font-size="28" font-weight="900" fill="url(#goldGrad)" letter-spacing="2">PRINCE</text>
+        <text x="145" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#fff" letter-spacing="1">MOVIE</text>
+      </svg>
+    </a>
+    <nav><a href="index.html">Accueil</a></nav>
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input id="searchInput" type="text" placeholder="Rechercher...">
+    </div>
+  </header>
+
+  <main class="netflix-main" style="padding-top:120px">
+    <h2 class="row-title" id="title">Recherche</h2>
+    <div id="app"><div class="loader">Chargement</div></div>
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    const q = getParam("q") || "";
+    const DETAIL_PAGES = {
+      movie: "film.html", series: "serie.html",
+      anime: "anime.html", drama: "drama.html"
+    };
+
+    async function load() {
+      const titleEl = document.getElementById("title");
+      const app = document.getElementById("app");
+
+      if (!q || q.length < 2) {
+        app.innerHTML = "<p style='color:#999'>Entrez au moins 2 caractères.</p>";
+        return;
+      }
+
+      document.getElementById("searchInput").value = q;
+      titleEl.textContent = `Résultats pour « ${q} »`;
+
+      try {
+        const { data, meta } = await api("/search", { q });
+        if (!data.length) {
+          app.innerHTML = `<p style='color:#999'>Aucun résultat pour « ${q} ».</p>`;
+          return;
+        }
+        titleEl.textContent = `Résultats pour « ${q} » (${meta.count})`;
+
+        app.innerHTML = `<div class="netflix-row">` + data.map(item => {
+          const page = DETAIL_PAGES[item.type] || "film.html";
+          const badgeClass = item.version === "VOSTFR" ? "vostfr" : "";
+          return `
+            <a class="netflix-card" href="${page}?slug=${item.slug}">
+              <div class="poster-wrap">
+                <img src="${item.image}" alt="${item.title}" loading="lazy">
+                <div class="card-overlay"><div class="card-play">▶</div></div>
+                <span class="badge ${badgeClass}">${item.version}</span>
+              </div>
+              <div class="card-info">
+                <strong>${item.title}</strong>
+                <div class="tag">${item.type}</div>
+              </div>
+            </a>`;
+        }).join("") + `</div>`;
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("keypress", e => {
+      if (e.key === "Enter") {
+        const val = e.target.value.trim();
+        if (val.length < 2) return;
+        location.href = `recherche.html?q=${encodeURIComponent(val)}`;
+      }
+    });
+
+    load();
+  </script>
+</body>
+</html>
