@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Film — PRINCE MOVIE</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo">PRINCE MOVIE</a>
+    <nav>
+      <a href="index.html">Accueil</a>
+      <a href="index.html">Films</a>
+    </nav>
+    <div class="search-box">
+      <input id="searchInput" type="text" placeholder="Rechercher...">
+      <button onclick="doSearch()">🔍</button>
+    </div>
+  </header>
+
+  <main id="app"><div class="loader">Chargement</div></main>
+
+  <script src="js/api.js"></script>
+  <script>
+    const slug = getSlug();
+
+    async function load() {
+      try {
+        const { data: m } = await api(`/movies/${slug}`);
+
+        // Sécurité : si c'est en fait une série
+        if (m.type === "series") {
+          location.href = `serie.html?slug=${slug}`;
+          return;
+        }
+
+        document.title = `${m.title} — PRINCE MOVIE`;
+
+        document.getElementById("app").innerHTML = `
+          <div class="detail">
+            <img class="poster" src="${m.image}" alt="${m.title}">
+            <div class="meta">
+              <h1>${m.title} ${m.year ? `(${m.year})` : ""}</h1>
+              <div class="tags">
+                <span class="badge ${m.version === 'VOSTFR' ? 'vostfr' : ''}">${m.version}</span>
+                ${(m.genres || []).map(g => `<span class="tag">${g}</span>`).join("")}
+                ${m.status ? `<span class="tag">${m.status}</span>` : ""}
+              </div>
+              <p class="synopsis">${m.synopsis || "Pas de synopsis disponible."}</p>
+              <a class="btn" href="lecteur.html?id=${m.first_episode_id}&title=${encodeURIComponent(m.title)}">▶ Regarder maintenant</a>
+            </div>
+          </div>
+
+          ${m.related && m.related.length ? `
+            <h1 class="section-title">Titres similaires</h1>
+            <div class="grid">
+              ${m.related.map(r => `
+                <a class="card" href="${r.type === 'series' ? 'serie.html' : 'film.html'}?slug=${r.slug}">
+                  <img src="${r.image}" alt="${r.title}" loading="lazy">
+                  <div class="info">
+                    <strong>${r.title}</strong>
+                    <span class="badge ${r.version === 'VOSTFR' ? 'vostfr' : ''}">${r.version}</span>
+                  </div>
+                </a>
+              `).join("")}
+            </div>
+          ` : ""}
+        `;
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+
+    function doSearch() {
+      const q = document.getElementById("searchInput").value.trim();
+      if (q.length < 2) return alert("Minimum 2 caractères");
+      location.href = `recherche.html?q=${encodeURIComponent(q)}`;
+    }
+
+    load();
+  </script>
+</body>
+    </html>
