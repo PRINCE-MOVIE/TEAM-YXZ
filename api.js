@@ -1,16 +1,19 @@
-const API = "http://51.75.118.170:20041/api/v1";
+const API_BASE = "http://51.75.118.170:20041/api/v1";
+const PROXY = "https://api.cors.lol/?url=";
 
 async function api(path, params = {}) {
-  const url = new URL(API + path);
+  const url = new URL(API_BASE + path);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
   });
 
+  const proxyUrl = PROXY + encodeURIComponent(url.toString());
+
   let res;
   try {
-    res = await fetch(url);
+    res = await fetch(proxyUrl);
   } catch (e) {
-    const err = new Error("Source indisponible");
+    const err = new Error("Source indisponible. Réessaie dans un instant.");
     err.code = "source_unavailable";
     throw err;
   }
@@ -25,7 +28,6 @@ async function api(path, params = {}) {
   return json;
 }
 
-// Helpers
 const getSlug = (key = "slug") => new URLSearchParams(location.search).get(key);
 const getParam = (key) => new URLSearchParams(location.search).get(key);
 
@@ -37,4 +39,10 @@ function showError(message) {
       <a href="index.html" class="btn">Retour à l'accueil</a>
     </div>
   `;
+}
+
+function doSearchFrom(inputId = "searchInput") {
+  const q = document.getElementById(inputId).value.trim();
+  if (q.length < 2) return alert("Minimum 2 caractères");
+  location.href = `recherche.html?q=${encodeURIComponent(q)}`;
 }
