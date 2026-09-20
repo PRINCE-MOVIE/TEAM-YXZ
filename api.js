@@ -1,16 +1,14 @@
 const API_BASE = "http://51.75.118.170:20041/api/v1";
-proxy = https://api.cors.lol/?url=http%3A%2F%2F51.75.118.170%3A20041%2Fapi%2Fv1%2Fmovies%3Fpage%3D1
+
 async function api(path, params = {}) {
   const url = new URL(API_BASE + path);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
   });
 
-  const proxyUrl = PROXY + encodeURIComponent(url.toString());
-
   let res;
   try {
-    res = await fetch(proxyUrl);
+    res = await fetch(url.toString());
   } catch (e) {
     const err = new Error("Source indisponible. Réessaie dans un instant.");
     err.code = "source_unavailable";
@@ -31,9 +29,11 @@ const getSlug = (key = "slug") => new URLSearchParams(location.search).get(key);
 const getParam = (key) => new URLSearchParams(location.search).get(key);
 
 function showError(message) {
-  document.getElementById("app").innerHTML = `
+  const app = document.getElementById("app");
+  if (!app) return;
+  app.innerHTML = `
     <div class="error-box">
-      <h2> Oups</h2>
+      <h2>😕 Oups</h2>
       <p>${message}</p>
       <a href="index.html" class="btn">Retour à l'accueil</a>
     </div>
