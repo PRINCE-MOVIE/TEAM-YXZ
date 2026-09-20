@@ -32,7 +32,7 @@ const getParam = (key) => new URLSearchParams(location.search).get(key);
 function showError(message) {
   document.getElementById("app").innerHTML = `
     <div class="error-box">
-      <h2>😕 Oups</h2>
+      <h2> Oups</h2>
       <p>${message}</p>
       <a href="index.html" class="btn">Retour à l'accueil</a>
     </div>
