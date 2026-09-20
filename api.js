@@ -1,4 +1,5 @@
 const API_BASE = "http://51.75.118.170:20041/api/v1";
+proxy = https://api.cors.lol/?url=http%3A%2F%2F51.75.118.170%3A20041%2Fapi%2Fv1%2Fmovies%3Fpage%3D1
 async function api(path, params = {}) {
   const url = new URL(API_BASE + path);
   Object.entries(params).forEach(([k, v]) => {
