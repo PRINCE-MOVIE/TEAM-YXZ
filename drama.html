@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>K-Drama — PRINCE MOVIE</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+</head>
+<body class="detail-page">
+  <header>
+    <a href="index.html" class="logo">PRINCE MOVIE</a>
+    <nav><a href="index.html">Accueil</a></nav>
+    <div class="search-box">
+      <input id="searchInput" type="text" placeholder="Rechercher...">
+      <button onclick="doSearchFrom()">🔍</button>
+    </div>
+  </header>
+
+  <main id="app"><div class="loader">Chargement</div></main>
+
+  <script src="api.js"></script>
+  <script>
+    const slug = getSlug();
+
+    if (!slug) {
+      showError("Aucun K-Drama sélectionné.");
+    } else {
+      loadDrama();
+    }
+
+    async function loadDrama() {
+      try {
+        const { data: d } = await api(`/dramas/${slug}`);
+        document.title = `${d.title} — PRINCE MOVIE`;
+
+        document.getElementById("app").innerHTML = `
+          <div class="detail">
+            <img class="poster" src="${d.image}" alt="${d.title}">
+            <div class="meta">
+              <h1>${d.title} ${d.year ? `(${d.year})` : ""}</h1>
+              <div class="tags">
+                <span class="badge ${d.version === 'VOSTFR' ? 'vostfr' : ''}">${d.version}</span>
+                ${d.country ? `<span class="tag">🌍 ${d.country}</span>` : ""}
+                ${(d.genres || []).map(g => `<span class="tag">${g}</span>`).join("")}
+                ${d.status ? `<span class="tag">${d.status}</span>` : ""}
+              </div>
+              <p class="synopsis">${d.synopsis || ""}</p>
+              ${d.first_episode_id ? `<a class="btn" href="lecteur.html?type=dramas&slug=${d.slug}&episode=${encodeURIComponent(d.first_episode_id)}&title=${encodeURIComponent(d.title)}">▶ Voir l'épisode 1</a>` : ""}
+            </div>
+          </div>
+
+          <h1 class="section-title">Épisodes (${(d.episodes || []).length})</h1>
+          <div class="episodes-list">
+            ${(d.episodes || []).map(ep => `
+              <a class="episode-item" href="lecteur.html?type=dramas&slug=${d.slug}&episode=${encodeURIComponent(ep.episode_id)}&title=${encodeURIComponent(d.title + ' - ' + (ep.title || ep.number))}">
+                <div class="saison">${ep.version || d.version}</div>
+                <div>${ep.title || "Épisode " + ep.number}</div>
+              </a>
+            `).join("")}
+          </div>
+        `;
+      } catch (e) {
+        showError(e.message);
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("keypress", e => {
+      if (e.key === "Enter") doSearchFrom();
+    });
+  </script>
+</body>
+</html>
