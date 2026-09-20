@@ -1,4 +1,5 @@
 const API_BASE = "http://51.75.118.170:20041/api/v1";
+const PROXY = "https://api.allorigins.win/raw?url=";
 
 async function api(path, params = {}) {
   const url = new URL(API_BASE + path);
@@ -6,9 +7,11 @@ async function api(path, params = {}) {
     if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
   });
 
+  const proxyUrl = PROXY + encodeURIComponent(url.toString());
+
   let res;
   try {
-    res = await fetch(url.toString());
+    res = await fetch(proxyUrl);
   } catch (e) {
     const err = new Error("Source indisponible. Réessaie dans un instant.");
     err.code = "source_unavailable";
@@ -33,7 +36,7 @@ function showError(message) {
   if (!app) return;
   app.innerHTML = `
     <div class="error-box">
-      <h2>😕 Oups</h2>
+      <h2> erreur</h2>
       <p>${message}</p>
       <a href="index.html" class="btn">Retour à l'accueil</a>
     </div>
