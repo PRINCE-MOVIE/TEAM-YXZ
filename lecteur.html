@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lecture — PRINCE MOVIE</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
 </head>
 <body>
@@ -15,8 +15,72 @@
 
   <main>
     <h1 class="section-title" id="title">Chargement...</h1>
-    <div class="player-wrap"><div class="loader" style="padding:200px 0">Chargement du lecteur</div></div>
+    <div class="player-wrap" id="player">
+      <div class="loader" style="padding:200px 0">Chargement du lecteur</div>
+    </div>
     <div class="servers-tabs" id="tabs"></div>
   </main>
 
-  <script src="
+  <script src="api.js"></script>
+  <script>
+    const id = getParam("id");           // pour films/séries
+    const type = getParam("type");       // "anime" ou "dramas"
+    const slug = getParam("slug");       // pour anime/dramas
+    const episode = getParam("episode"); // pour anime/dramas
+    const title = getParam("title") || "Lecture";
+
+    document.getElementById("title").textContent = title;
+    document.title = `${title} — PRINCE MOVIE`;
+
+    let servers = [];
+
+    async function loadServers() {
+      try {
+        let data;
+        if (type === "anime") {
+          ({ data } = await api(`/anime/${slug}/servers`, { episode }));
+        } else if (type === "dramas") {
+          ({ data } = await api(`/dramas/${slug}/servers`, { episode }));
+        } else {
+          ({ data } = await api(`/episodes/${id}/servers`));
+        }
+
+        servers = data;
+        if (!servers.length) {
+          document.getElementById("player").innerHTML = `<div class="error-box"><p>Aucun serveur disponible.</p></div>`;
+          return;
+        }
+        renderTabs();
+        switchServer(0);
+      } catch (e) {
+        document.getElementById("player").innerHTML = `
+          <div class="error-box">
+            <h2>😕 ${e.code === "no_servers" ? "Pas de lien disponible" : "Erreur"}</h2>
+            <p>${e.message}</p>
+          </div>`;
+      }
+    }
+
+    function renderTabs() {
+      const tabs = document.getElementById("tabs");
+      tabs.innerHTML = servers.map((s, i) => `
+        <button class="server-btn" onclick="switchServer(${i})">
+          ${s.server_name} <small>(${s.version})</small>
+        </button>
+      `).join("");
+    }
+
+    function switchServer(i) {
+      document.querySelectorAll(".server-btn").forEach((b, idx) => {
+        b.classList.toggle("active", idx === i);
+      });
+      document.getElementById("player").innerHTML = `
+        <iframe src="${servers[i].server_link}" allowfullscreen
+          referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
+      `;
+    }
+
+    loadServers();
+  </script>
+</body>
+</html>
