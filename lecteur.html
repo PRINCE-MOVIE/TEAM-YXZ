@@ -7,10 +7,13 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
 </head>
-<body>
+<body class="player-page">
   <header>
     <a href="index.html" class="logo">PRINCE MOVIE</a>
-    <nav><a href="index.html">Accueil</a></nav>
+    <nav>
+      <a href="index.html">Accueil</a>
+      <a href="javascript:history.back()">← Retour</a>
+    </nav>
   </header>
 
   <main>
@@ -23,10 +26,10 @@
 
   <script src="api.js"></script>
   <script>
-    const id = getParam("id");           // pour films/séries
-    const type = getParam("type");       // "anime" ou "dramas"
-    const slug = getParam("slug");       // pour anime/dramas
-    const episode = getParam("episode"); // pour anime/dramas
+    const id = getParam("id");
+    const type = getParam("type");
+    const slug = getParam("slug");
+    const episode = getParam("episode");
     const title = getParam("title") || "Lecture";
 
     document.getElementById("title").textContent = title;
@@ -42,12 +45,14 @@
         } else if (type === "dramas") {
           ({ data } = await api(`/dramas/${slug}/servers`, { episode }));
         } else {
+          if (!id) throw new Error("Aucun épisode spécifié.");
           ({ data } = await api(`/episodes/${id}/servers`));
         }
 
         servers = data;
         if (!servers.length) {
-          document.getElementById("player").innerHTML = `<div class="error-box"><p>Aucun serveur disponible.</p></div>`;
+          document.getElementById("player").innerHTML = `
+            <div class="error-box"><p>Aucun serveur disponible.</p></div>`;
           return;
         }
         renderTabs();
@@ -55,15 +60,14 @@
       } catch (e) {
         document.getElementById("player").innerHTML = `
           <div class="error-box">
-            <h2>😕 ${e.code === "no_servers" ? "Pas de lien disponible" : "Erreur"}</h2>
+            <h2>😕 Erreur</h2>
             <p>${e.message}</p>
           </div>`;
       }
     }
 
     function renderTabs() {
-      const tabs = document.getElementById("tabs");
-      tabs.innerHTML = servers.map((s, i) => `
+      document.getElementById("tabs").innerHTML = servers.map((s, i) => `
         <button class="server-btn" onclick="switchServer(${i})">
           ${s.server_name} <small>(${s.version})</small>
         </button>
@@ -76,7 +80,8 @@
       });
       document.getElementById("player").innerHTML = `
         <iframe src="${servers[i].server_link}" allowfullscreen
-          referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
+          referrerpolicy="no-referrer"
+          sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
       `;
     }
 
