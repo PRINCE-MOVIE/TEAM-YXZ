@@ -7,9 +7,27 @@
   <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
 </head>
-<body>
-  <header>
-    <a href="index.html" class="logo">PRINCE MOVIE</a>
+<body class="netflix-mode">
+
+  <!-- ============ HEADER ============ -->
+  <header id="mainHeader">
+    <a href="index.html" class="logo">
+      <svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#f5b400"/>
+            <stop offset="50%" stop-color="#ff8a00"/>
+            <stop offset="100%" stop-color="#f5b400"/>
+          </linearGradient>
+        </defs>
+        <text x="0" y="30" font-family="Arial Black, sans-serif" font-size="28"
+              font-weight="900" fill="url(#goldGrad)" letter-spacing="2">PRINCE</text>
+        <text x="145" y="30" font-family="Arial, sans-serif" font-size="18"
+              font-weight="700" fill="#fff" letter-spacing="1">MOVIE</text>
+        <text x="175" y="18" font-size="14" fill="url(#goldGrad)">👑</text>
+      </svg>
+    </a>
+
     <nav>
       <a href="#" class="active" data-tab="movies">Films</a>
       <a href="#" data-tab="series">Séries</a>
@@ -17,33 +35,75 @@
       <a href="#" data-tab="dramas">K-Dramas</a>
       <a href="#" data-tab="webtoons">Webtoons</a>
     </nav>
+
     <div class="search-box">
-      <input id="searchInput" type="text" placeholder="Rechercher...">
-      <button onclick="doSearchFrom()">🔍</button>
+      <span class="search-icon">🔍</span>
+      <input id="searchInput" type="text" placeholder="Titres, genres...">
     </div>
   </header>
 
-  <main>
-    <h1 class="section-title" id="title">Films</h1>
-    <div id="app"><div class="loader">Chargement</div></div>
-    <div class="pagination" id="pagination"></div>
+  <!-- ============ HERO BANNER ============ -->
+  <section class="hero" id="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-gradient"></div>
+    <div class="hero-content">
+      <div class="hero-badge">👑 À L'AFFICHE</div>
+      <h1 id="heroTitle">Chargement...</h1>
+      <div class="hero-meta" id="heroMeta"></div>
+      <p class="hero-desc" id="heroDesc"></p>
+      <div class="hero-buttons">
+        <a href="#" class="btn btn-play" id="heroPlay">▶ Lecture</a>
+        <a href="#" class="btn btn-info" id="heroInfo">ℹ Plus d'infos</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTENU ============ -->
+  <main class="netflix-main">
+    <section class="row-section">
+      <h2 class="row-title" id="title">Films populaires</h2>
+      <div id="app" class="row-container">
+        <div class="loader">Chargement</div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </section>
   </main>
+
+  <!-- ============ FOOTER ============ -->
+  <footer class="netflix-footer">
+    <p>👑 <strong>PRINCE MOVIE</strong> — Streaming VF & VOSTFR</p>
+    <p class="footer-note">Ce site n'héberge aucun fichier vidéo. Tous les contenus proviennent de sources tierces.</p>
+  </footer>
 
   <script src="api.js"></script>
   <script>
     let currentTab = "movies";
     let currentPage = 1;
+    let allItems = [];
 
     const TITLES = {
-      movies: "Films", series: "Séries", anime: "Animés",
-      dramas: "K-Dramas", webtoons: "Webtoons"
+      movies: "Films populaires",
+      series: "Séries populaires",
+      anime: "Animés tendance",
+      dramas: "K-Dramas à voir",
+      webtoons: "Webtoons du moment"
     };
 
     const DETAIL_PAGES = {
-      movie: "film.html", series: "serie.html",
-      anime: "anime.html", drama: "drama.html", webtoon: "webtoon.html"
+      movie: "film.html",
+      series: "serie.html",
+      anime: "anime.html",
+      drama: "drama.html",
+      webtoon: "webtoon.html"
     };
 
+    // ---------- HEADER SCROLL ----------
+    window.addEventListener("scroll", () => {
+      const h = document.getElementById("mainHeader");
+      h.classList.toggle("scrolled", window.scrollY > 50);
+    });
+
+    // ---------- NAVIGATION ONGLETS ----------
     document.querySelectorAll("nav a").forEach(a => {
       a.onclick = (e) => {
         e.preventDefault();
@@ -56,26 +116,56 @@
       };
     });
 
+    // ---------- CHARGEMENT ----------
     async function loadTab() {
       const app = document.getElementById("app");
       const pag = document.getElementById("pagination");
       app.innerHTML = `<div class="loader">Chargement</div>`;
       pag.innerHTML = "";
+      document.getElementById("hero").style.opacity = "0";
 
       try {
         const json = await api(`/${currentTab}`, { page: currentPage });
-        renderGrid(json.data);
+        allItems = json.data || [];
+        renderGrid(allItems);
         renderPagination(json.meta);
+        updateHero(allItems[0]);
       } catch (e) {
+        console.error("Erreur :", e);
         showError(e.message);
       }
     }
 
+    // ---------- HERO ----------
+    function updateHero(item) {
+      if (!item) return;
+      const hero = document.getElementById("hero");
+      const bg = document.getElementById("heroBg");
+      bg.style.backgroundImage = `url('${item.image}')`;
+
+      document.getElementById("heroTitle").textContent = item.title;
+      document.getElementById("heroMeta").innerHTML = `
+        <span class="badge ${item.version === 'VOSTFR' ? 'vostfr' : ''}">${item.version}</span>
+        <span class="hero-type">${item.type === 'movie' ? '🎬 Film' : item.type === 'series' ? '📺 Série' : item.type === 'anime' ? '🌸 Animé' : item.type === 'drama' ? '🇰🇷 K-Drama' : '📖 Webtoon'}</span>
+      `;
+      document.getElementById("heroDesc").textContent = `Découvrez "${item.title}" en streaming ${item.version} sur PRINCE MOVIE.`;
+
+      const page = DETAIL_PAGES[item.type] || "film.html";
+      document.getElementById("heroInfo").href = `${page}?slug=${item.slug}`;
+      document.getElementById("heroPlay").href = `${page}?slug=${item.slug}`;
+
+      hero.style.opacity = "1";
+    }
+
+    // ---------- GRILLE ----------
     function renderGrid(items) {
       const app = document.getElementById("app");
-      if (!items.length) { app.innerHTML = "<p>Aucun résultat.</p>"; return; }
+      if (!items.length) {
+        app.innerHTML = "<p style='color:#999;padding:20px'>Aucun résultat.</p>";
+        return;
+      }
 
-      app.innerHTML = `<div class="grid">` + items.map(item => {
+      app.innerHTML = `<div class="netflix-row">` + items.map(item => {
         const page = DETAIL_PAGES[item.type] || "film.html";
         const badgeClass = item.version === "VOSTFR" ? "vostfr"
                          : item.version === "TrueFrench" ? "truefrench" : "";
@@ -83,30 +173,44 @@
         const extra2 = item.latest_chapter ? `<div class="tag">${item.latest_chapter}</div>` : "";
 
         return `
-          <a class="card" href="${page}?slug=${item.slug}">
-            <img src="${item.image}" alt="${item.title}" loading="lazy"
-                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22300%22/%3E%3C/svg%3E'">
-            <div class="info">
-              <strong>${item.title}</strong>
+          <a class="netflix-card" href="${page}?slug=${item.slug}" title="${item.title}">
+            <div class="poster-wrap">
+              <img src="${item.image}" alt="${item.title}" loading="lazy"
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22300%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 fill=%22%23666%22 font-size=%2240%22 text-anchor=%22middle%22%3E👑%3C/text%3E%3C/svg%3E'">
+              <div class="card-overlay">
+                <div class="card-play">▶</div>
+              </div>
               <span class="badge ${badgeClass}">${item.version}</span>
+            </div>
+            <div class="card-info">
+              <strong>${item.title}</strong>
               ${extra}${extra2}
             </div>
           </a>`;
       }).join("") + `</div>`;
+
+      // Animation d'apparition
+      requestAnimationFrame(() => {
+        document.querySelectorAll(".netflix-card").forEach((c, i) => {
+          c.style.animationDelay = `${i * 30}ms`;
+          c.classList.add("appear");
+        });
+      });
     }
 
+    // ---------- PAGINATION ----------
     function renderPagination(meta) {
       if (!meta || meta.last_page <= 1) return;
       const pag = document.getElementById("pagination");
       const total = meta.last_page;
-      let html = `<button ${currentPage === 1 ? "disabled" : ""} onclick="goPage(${currentPage - 1})">« Précédent</button>`;
+      let html = `<button ${currentPage === 1 ? "disabled" : ""} onclick="goPage(${currentPage - 1})">«</button>`;
 
       const start = Math.max(1, currentPage - 2);
       const end = Math.min(total, currentPage + 2);
       for (let i = start; i <= end; i++) {
         html += `<button class="${i === currentPage ? "active" : ""}" onclick="goPage(${i})">${i}</button>`;
       }
-      html += `<button ${currentPage === total ? "disabled" : ""} onclick="goPage(${currentPage + 1})">Suivant »</button>`;
+      html += `<button ${currentPage === total ? "disabled" : ""} onclick="goPage(${currentPage + 1})">»</button>`;
       pag.innerHTML = html;
     }
 
@@ -116,11 +220,17 @@
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    // ---------- RECHERCHE ----------
     document.getElementById("searchInput").addEventListener("keypress", e => {
-      if (e.key === "Enter") doSearchFrom();
+      if (e.key === "Enter") {
+        const q = e.target.value.trim();
+        if (q.length < 2) return;
+        location.href = `recherche.html?q=${encodeURIComponent(q)}`;
+      }
     });
 
+    // ---------- START ----------
     loadTab();
   </script>
 </body>
-    </html>
+  </html>
