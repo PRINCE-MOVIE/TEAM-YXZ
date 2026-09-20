@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Film — PRINCE MOVIE</title>
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
 </head>
 <body>
@@ -16,21 +16,27 @@
     </nav>
     <div class="search-box">
       <input id="searchInput" type="text" placeholder="Rechercher...">
-      <button onclick="doSearch()">🔍</button>
+      <button onclick="doSearchFrom()">🔍</button>
     </div>
   </header>
 
   <main id="app"><div class="loader">Chargement</div></main>
 
-  <script src="js/api.js"></script>
+  <script src="api.js"></script>
   <script>
     const slug = getSlug();
 
-    async function load() {
+    if (!slug) {
+      showError("Aucun film sélectionné. Retourne à l'accueil pour en choisir un.");
+    } else {
+      loadMovie();
+    }
+
+    async function loadMovie() {
       try {
         const { data: m } = await api(`/movies/${slug}`);
 
-        // Sécurité : si c'est en fait une série
+        // Si c'est en fait une série, on redirige
         if (m.type === "series") {
           location.href = `serie.html?slug=${slug}`;
           return;
@@ -38,18 +44,24 @@
 
         document.title = `${m.title} — PRINCE MOVIE`;
 
+        const badgeClass = m.version === "VOSTFR" ? "vostfr"
+                         : m.version === "TrueFrench" ? "truefrench" : "";
+
         document.getElementById("app").innerHTML = `
           <div class="detail">
-            <img class="poster" src="${m.image}" alt="${m.title}">
+            <img class="poster" src="${m.image}" alt="${m.title}"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22260%22 height=%22390%22%3E%3Crect fill=%22%23222%22 width=%22260%22 height=%22390%22/%3E%3C/svg%3E'">
             <div class="meta">
               <h1>${m.title} ${m.year ? `(${m.year})` : ""}</h1>
               <div class="tags">
-                <span class="badge ${m.version === 'VOSTFR' ? 'vostfr' : ''}">${m.version}</span>
+                <span class="badge ${badgeClass}">${m.version}</span>
                 ${(m.genres || []).map(g => `<span class="tag">${g}</span>`).join("")}
                 ${m.status ? `<span class="tag">${m.status}</span>` : ""}
               </div>
               <p class="synopsis">${m.synopsis || "Pas de synopsis disponible."}</p>
-              <a class="btn" href="lecteur.html?id=${m.first_episode_id}&title=${encodeURIComponent(m.title)}">▶ Regarder maintenant</a>
+              ${m.first_episode_id
+                ? `<a class="btn" href="lecteur.html?id=${m.first_episode_id}&title=${encodeURIComponent(m.title)}">▶ Regarder maintenant</a>`
+                : `<p style="color:#e50914">⚠️ Aucun lien de lecture disponible pour ce film.</p>`}
             </div>
           </div>
 
@@ -69,17 +81,18 @@
           ` : ""}
         `;
       } catch (e) {
-        showError(e.message);
+        console.error("Erreur :", e);
+        if (e.code === "wrong_type") {
+          location.href = `serie.html?slug=${slug}`;
+        } else {
+          showError(e.message);
+        }
       }
     }
 
-    function doSearch() {
-      const q = document.getElementById("searchInput").value.trim();
-      if (q.length < 2) return alert("Minimum 2 caractères");
-      location.href = `recherche.html?q=${encodeURIComponent(q)}`;
-    }
-
-    load();
+    document.getElementById("searchInput").addEventListener("keypress", e => {
+      if (e.key === "Enter") doSearchFrom();
+    });
   </script>
 </body>
 </html>
