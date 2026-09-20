@@ -44,7 +44,7 @@ header {
   text-decoration: none;
 }
 
-.logo::before { content: "👑 "; -webkit-text-fill-color: initial; }
+.logo::before { content: "★ "; -webkit-text-fill-color: initial; }
 
 nav {
   display: flex;
