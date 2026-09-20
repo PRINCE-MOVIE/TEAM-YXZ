@@ -1,0 +1,16 @@
+GET http://51.75.118.170:20041/api/v1/movies?page=1&genre=action
+
+{
+  "success": true,
+  "data": [
+    {
+      "title": "Reacher Saison 4",
+      "slug": "reacher-saison-4-vf",
+      "url": "https://coflix.wiki/film/reacher-saison-4-vf",
+      "image": "https://coflix.wiki/img/reacher.jpg",
+      "version": "VF",
+      "type": "series"
+    }
+  ],
+  "meta": { "page": 1, "last_page": 42, "genre": "action" }
+}
