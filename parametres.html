@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paramètres — PRINCE MOVIE</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><rect x='4' y='4' width='92' height='92' rx='24' fill='%23e2261c'/><path d='M40 28l34 22-34 22V28z' fill='%230a0a0a'/></svg>">
+</head>
+<body>
+  <header>
+    <a href="accueil.html" class="logo"><svg class="logo-mark" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="22" height="22" rx="6" fill="#e2261c"/><path d="M9.5 7l8 5-8 5V7z" fill="#0a0a0a"/></svg>PRINCE MOVIE</a>
+  </header>
+
+  <main style="max-width:700px; margin:0 auto; padding:30px 16px;">
+    <h1 class="section-title">Paramètres du compte</h1>
+
+    <div id="guard"></div>
+
+    <div id="settingsContent" style="display:none;">
+      <div class="settings-section">
+        <h2>Profil</h2>
+        <form id="profileForm">
+          <div class="field-row">
+            <div class="field">
+              <label for="prenom">Prénom</label>
+              <input id="prenom" type="text">
+            </div>
+            <div class="field">
+              <label for="nom">Nom</label>
+              <input id="nom" type="text">
+            </div>
+          </div>
+          <div class="field">
+            <label for="email">Adresse email</label>
+            <input id="email" type="email">
+          </div>
+          <div class="field">
+            <label for="telephone">Numéro de téléphone</label>
+            <input id="telephone" type="tel">
+          </div>
+          <button type="submit" class="btn">Enregistrer</button>
+          <div class="save-confirm" id="profileConfirm">✓ Profil mis à jour</div>
+        </form>
+      </div>
+
+      <div class="settings-section">
+        <h2>Sécurité</h2>
+        <form id="passwordForm">
+          <div class="field" id="f-newpass">
+            <label for="newpass">Nouveau mot de passe</label>
+            <input id="newpass" type="password" placeholder="8 caractères minimum">
+            <div class="field-error">8 caractères minimum.</div>
+          </div>
+          <div class="field" id="f-newpass2">
+            <label for="newpass2">Confirmer le nouveau mot de passe</label>
+            <input id="newpass2" type="password">
+            <div class="field-error">Les mots de passe ne correspondent pas.</div>
+          </div>
+          <button type="submit" class="btn">Changer le mot de passe</button>
+          <div class="save-confirm" id="passwordConfirm">✓ Mot de passe changé</div>
+        </form>
+      </div>
+
+      <div class="settings-section">
+        <h2>Préférences</h2>
+        <div class="toggle-row">
+          <div class="label">Lecture automatique<small>Lance l'épisode suivant automatiquement</small></div>
+          <label class="switch"><input type="checkbox" id="prefAutoplay"><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="label">Notifications<small>Nouveautés et épisodes ajoutés</small></div>
+          <label class="switch"><input type="checkbox" id="prefNotif"><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="label">Sous-titres par défaut<small>Afficher les sous-titres quand disponibles</small></div>
+          <label class="switch"><input type="checkbox" id="prefSubs"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Compte</h2>
+        <button type="button" class="btn-outline" id="logoutBtn" style="color:var(--accent); background:rgba(226,38,28,.12);">Se déconnecter</button>
+      </div>
+    </div>
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    const user = getCurrentUser();
+
+    if (!user || !isLoggedIn()) {
+      document.getElementById("guard").innerHTML = `
+        <div class="notice-banner">
+          Tu dois être connecté pour accéder aux paramètres.
+          <a href="connexion.html" style="color:var(--accent); font-weight:700;">Se connecter</a>
+        </div>`;
+    } else {
+      document.getElementById("settingsContent").style.display = "block";
+      document.getElementById("prenom").value = user.prenom || "";
+      document.getElementById("nom").value = user.nom || "";
+      document.getElementById("email").value = user.email || "";
+      document.getElementById("telephone").value = user.telephone || "";
+
+      const prefs = JSON.parse(localStorage.getItem("pm_prefs") || "{}");
+      document.getElementById("prefAutoplay").checked = !!prefs.autoplay;
+      document.getElementById("prefNotif").checked = !!prefs.notif;
+      document.getElementById("prefSubs").checked = !!prefs.subs;
+
+      document.getElementById("profileForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        updateUser({
+          prenom: document.getElementById("prenom").value.trim(),
+          nom: document.getElementById("nom").value.trim(),
+          email: document.getElementById("email").value.trim(),
+          telephone: document.getElementById("telephone").value.trim(),
+        });
+        const c = document.getElementById("profileConfirm");
+        c.style.display = "block";
+        setTimeout(() => c.style.display = "none", 2500);
+      });
+
+      document.getElementById("passwordForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const p1 = document.getElementById("newpass").value;
+        const p2 = document.getElementById("newpass2").value;
+        const okLen = p1.length >= 8;
+        const okMatch = p1 === p2 && p2.length > 0;
+
+        document.getElementById("f-newpass").classList.toggle("invalid", !okLen);
+        document.getElementById("f-newpass2").classList.toggle("invalid", !okMatch);
+        if (!okLen || !okMatch) return;
+
+        updateUser({ password: p1 });
+        document.getElementById("passwordForm").reset();
+        const c = document.getElementById("passwordConfirm");
+        c.style.display = "block";
+        setTimeout(() => c.style.display = "none", 2500);
+      });
+
+      ["prefAutoplay", "prefNotif", "prefSubs"].forEach(id => {
+        document.getElementById(id).addEventListener("change", () => {
+          const p = {
+            autoplay: document.getElementById("prefAutoplay").checked,
+            notif: document.getElementById("prefNotif").checked,
+            subs: document.getElementById("prefSubs").checked,
+          };
+          localStorage.setItem("pm_prefs", JSON.stringify(p));
+        });
+      });
+
+      document.getElementById("logoutBtn").addEventListener("click", logoutUser);
+    }
+  </script>
+</body>
+</html>

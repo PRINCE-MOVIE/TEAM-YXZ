@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscription — PRINCE MOVIE</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><rect x='4' y='4' width='92' height='92' rx='24' fill='%23e2261c'/><path d='M40 28l34 22-34 22V28z' fill='%230a0a0a'/></svg>">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="logo"><svg class="logo-mark" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="22" height="22" rx="6" fill="#e2261c"/><path d="M9.5 7l8 5-8 5V7z" fill="#0a0a0a"/></svg>PRINCE MOVIE</a>
+    <nav><a href="index.html">Accueil</a></nav>
+  </header>
+
+  <div class="auth-wrap">
+    <h1>Créer un compte</h1>
+    <p class="sub">Inscris-toi pour profiter de PRINCE MOVIE</p>
+
+    <div class="notice-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16" style="flex-shrink:0; margin-top:2px;"><path d="M12 9v4"/><path d="M10.3 3.6 1.8 18a1.6 1.6 0 0 0 1.4 2.4h17.6a1.6 1.6 0 0 0 1.4-2.4L13.7 3.6a1.6 1.6 0 0 0-2.8 0Z"/><path d="M12 16.2h.01"/></svg>
+      <span>Ce compte est stocké uniquement dans ton navigateur (démo visuelle) — il n'y a pas de vrai serveur derrière, donc pas de vraie sécurité ni de synchronisation entre appareils.</span>
+    </div>
+
+    <form id="signupForm" novalidate autocomplete="off">
+      <div class="field-row">
+        <div class="field" id="f-prenom">
+          <label for="prenom">Prénom</label>
+          <input id="prenom" type="text" autocomplete="given-name">
+          <div class="field-error">Le prénom est requis.</div>
+        </div>
+        <div class="field" id="f-nom">
+          <label for="nom">Nom</label>
+          <input id="nom" type="text" autocomplete="family-name">
+          <div class="field-error">Le nom est requis.</div>
+        </div>
+      </div>
+
+      <div class="field" id="f-email">
+        <label for="email">Adresse email</label>
+        <input id="email" type="email" autocomplete="email" placeholder="toi@exemple.com">
+        <div class="field-error">Entre une adresse email valide.</div>
+      </div>
+
+      <div class="field" id="f-telephone">
+        <label for="telephone">Numéro de téléphone</label>
+        <input id="telephone" type="tel" autocomplete="tel" placeholder="+33 6 12 34 56 78">
+        <div class="field-error">Entre un numéro de téléphone valide.</div>
+      </div>
+
+      <div class="field" id="f-password">
+        <label for="password">Mot de passe</label>
+        <input id="password" type="password" autocomplete="new-password" placeholder="8 caractères minimum">
+        <div class="field-error">8 caractères minimum.</div>
+      </div>
+
+      <div class="field" id="f-password2">
+        <label for="password2">Confirmer le mot de passe</label>
+        <input id="password2" type="password" autocomplete="new-password">
+        <div class="field-error">Les mots de passe ne correspondent pas.</div>
+      </div>
+
+      <button type="submit" class="btn auth-submit">S'inscrire</button>
+    </form>
+
+    <div class="auth-switch">Déjà un compte ? <a href="connexion.html">Se connecter</a></div>
+  </div>
+
+  <script src="api.js"></script>
+  <script>
+    // Pré-remplit l'email si on arrive depuis le formulaire rapide de la page d'accueil
+    const prefillEmail = new URLSearchParams(location.search).get("email");
+    if (prefillEmail) document.getElementById("email").value = prefillEmail;
+
+    function setInvalid(id, invalid) {
+      document.getElementById(id).classList.toggle("invalid", invalid);
+    }
+
+    document.getElementById("signupForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const prenom = document.getElementById("prenom").value.trim();
+      const nom = document.getElementById("nom").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const telephone = document.getElementById("telephone").value.trim();
+      const password = document.getElementById("password").value;
+      const password2 = document.getElementById("password2").value;
+
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+      const phoneOk = /^[0-9+\s().-]{8,}$/.test(telephone);
+      const passOk = password.length >= 8;
+      const matchOk = password === password2 && password2.length > 0;
+
+      setInvalid("f-prenom", !prenom);
+      setInvalid("f-nom", !nom);
+      setInvalid("f-email", !emailOk);
+      setInvalid("f-telephone", !phoneOk);
+      setInvalid("f-password", !passOk);
+      setInvalid("f-password2", !matchOk);
+
+      if (!prenom || !nom || !emailOk || !phoneOk || !passOk || !matchOk) return;
+
+      registerUser({ nom, prenom, email, telephone, password });
+      location.href = "accueil.html";
+    });
+
+    // Retire l'état invalide dès que l'utilisateur corrige un champ
+    document.querySelectorAll(".field input").forEach(input => {
+      input.addEventListener("input", () => input.closest(".field").classList.remove("invalid"));
+    });
+  </script>
+</body>
+</html>
