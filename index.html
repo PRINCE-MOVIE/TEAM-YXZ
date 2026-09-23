@@ -3,128 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PRINCE MOVIE — Streaming VF & VOSTFR</title>
+  <title>PRINCE MOVIE — Films, Séries & Animés en streaming</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>★</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><rect x='4' y='4' width='92' height='92' rx='24' fill='%23e2261c'/><path d='M40 28l34 22-34 22V28z' fill='%230a0a0a'/></svg>">
 </head>
-<body>
-  <header>
-    <a href="index.html" class="logo">PRINCE MOVIE</a>
-    <nav>
-      <a href="#" class="active" data-tab="movies">Films</a>
-      <a href="#" data-tab="series">Séries</a>
-      <a href="#" data-tab="anime">Animés</a>
-      <a href="#" data-tab="dramas">K-Dramas</a>
-      <a href="#" data-tab="webtoons">Webtoons</a>
-    </nav>
-    <div class="search-box">
-      <input id="searchInput" type="text" placeholder="Rechercher...">
-      <button onclick="doSearchFrom()">🔍</button>
-    </div>
+<body class="welcome-body">
+
+  <div class="welcome-bg" id="welcomeBg"></div>
+  <div class="welcome-overlay"></div>
+
+  <header class="welcome-header">
+    <span class="logo logo-lg">
+      <svg class="logo-mark" viewBox="0 0 24 24" width="30" height="30" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="22" height="22" rx="6" fill="#e2261c"/><path d="M9.5 7l8 5-8 5V7z" fill="#0a0a0a"/></svg>
+      PRINCE MOVIE
+    </span>
+    <a href="connexion.html" class="btn welcome-login-btn">Se connecter</a>
   </header>
 
-  <main>
-    <h1 class="section-title" id="title">Films</h1>
-    <div id="app"><div class="loader">Chargement</div></div>
-    <div class="pagination" id="pagination"></div>
+  <p class="welcome-credit">CRÉÉ PAR PRINCE★</p>
+
+  <main class="welcome-hero">
+    <div class="welcome-logo-big">
+      <svg viewBox="0 0 220 220" width="120" height="120" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="6" width="208" height="208" rx="46" fill="#e2261c"/>
+        <rect x="6" y="6" width="208" height="208" rx="46" fill="url(#sheen)"/>
+        <path d="M84 60l84 50-84 50V60z" fill="#0a0a0a"/>
+        <defs>
+          <linearGradient id="sheen" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
+            <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <h1>Films, séries, animés,<br>K-dramas et webtoons.</h1>
+    <p class="welcome-sub">Tout ton divertissement au même endroit.<br>Crée ton compte pour commencer à regarder.</p>
+
+    <form id="quickForm" class="welcome-form">
+      <input id="quickEmail" type="email" placeholder="Adresse email" autocomplete="email">
+      <button type="submit" class="btn welcome-cta">Commencer <span aria-hidden="true">›</span></button>
+    </form>
+
+    <p class="welcome-note">Déjà inscrit ? <a href="connexion.html">Connecte-toi ici</a></p>
   </main>
+
+  <section class="welcome-features">
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M7 5v14M17 5v14M2.5 9.5h4.5M2.5 14.5h4.5M17 9.5h4.5M17 14.5h4.5"/></svg></div>
+      <h3>Un catalogue complet</h3>
+      <p>Films, séries, animés, K-dramas et webtoons réunis dans un seul catalogue, mis à jour régulièrement.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M11 18.2h2"/></svg></div>
+      <h3>Sur tous tes écrans</h3>
+      <p>Regarde sur ton téléphone, ta tablette ou ton ordinateur, où que tu sois.</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="7"/><path d="m20.5 20.5-4.8-4.8"/></svg></div>
+      <h3>Trouve tout en un instant</h3>
+      <p>La recherche te sort le bon titre immédiatement, VF comme VOSTFR.</p>
+    </div>
+  </section>
+
+  <footer class="welcome-footer">
+    <p>PRINCE MOVIE — Projet de démonstration, non affilié à un service commercial.</p>
+  </footer>
 
   <script src="api.js"></script>
   <script>
-    let currentTab = "movies";
-    let currentPage = 1;
+    // Si la personne est déjà connectée, pas besoin de repasser par l'inscription
+    if (getCurrentUser() && isLoggedIn()) {
+      location.href = "accueil.html";
+    }
 
-    const TITLES = {
-      movies: "Films", series: "Séries", anime: "Animés",
-      dramas: "K-Dramas", webtoons: "Webtoons"
-    };
-
-    const DETAIL_PAGES = {
-      movie: "film.html", series: "serie.html",
-      anime: "anime.html", drama: "drama.html", webtoon: "webtoon.html"
-    };
-
-    document.querySelectorAll("nav a").forEach(a => {
-      a.onclick = (e) => {
-        e.preventDefault();
-        document.querySelectorAll("nav a").forEach(x => x.classList.remove("active"));
-        a.classList.add("active");
-        currentTab = a.dataset.tab;
-        currentPage = 1;
-        document.getElementById("title").textContent = TITLES[currentTab];
-        loadTab();
-      };
+    document.getElementById("quickForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const email = document.getElementById("quickEmail").value.trim();
+      const qs = email ? `?email=${encodeURIComponent(email)}` : "";
+      location.href = `inscription.html${qs}`;
     });
 
-    async function loadTab() {
-      const app = document.getElementById("app");
-      const pag = document.getElementById("pagination");
-      app.innerHTML = `<div class="loader">Chargement</div>`;
-      pag.innerHTML = "";
-
+    // Petite mosaïque d'affiches en fond, pour l'ambiance (comme sur les
+    // landing pages des plateformes de streaming)
+    async function loadBackdrop() {
       try {
-        const json = await api(`/${currentTab}`, { page: currentPage });
-        renderGrid(json.data);
-        renderPagination(json.meta);
+        const { data } = await api("/movies", { page: 1 });
+        if (!data || !data.length) return;
+        const bg = document.getElementById("welcomeBg");
+        const imgs = data.slice(0, 18);
+        bg.innerHTML = imgs.map(m => `<img src="${m.image}" alt="" loading="lazy">`).join("");
       } catch (e) {
-        console.error("Erreur :", e);
-        showError(e.message);
+        // Pas grave si ça échoue : le dégradé de fond suffit visuellement
+        console.error("Backdrop indisponible :", e);
       }
     }
-
-    function renderGrid(items) {
-      const app = document.getElementById("app");
-      if (!items || !items.length) {
-        app.innerHTML = "<p>Aucun résultat.</p>";
-        return;
-      }
-
-      app.innerHTML = `<div class="grid">` + items.map(item => {
-        const page = DETAIL_PAGES[item.type] || "film.html";
-        const badgeClass = item.version === "VOSTFR" ? "vostfr"
-                         : item.version === "TrueFrench" ? "truefrench" : "";
-        const extra = item.latest_episode ? `<div class="tag">${item.latest_episode}</div>` : "";
-        const extra2 = item.latest_chapter ? `<div class="tag">${item.latest_chapter}</div>` : "";
-
-        return `
-          <a class="card" href="${page}?slug=${item.slug}">
-            <img src="${item.image}" alt="${item.title}" loading="lazy"
-                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22300%22/%3E%3C/svg%3E'">
-            <div class="info">
-              <strong>${item.title}</strong>
-              <span class="badge ${badgeClass}">${item.version}</span>
-              ${extra}${extra2}
-            </div>
-          </a>`;
-      }).join("") + `</div>`;
-    }
-
-    function renderPagination(meta) {
-      if (!meta || meta.last_page <= 1) return;
-      const pag = document.getElementById("pagination");
-      const total = meta.last_page;
-      let html = `<button ${currentPage === 1 ? "disabled" : ""} onclick="goPage(${currentPage - 1})">« Précédent</button>`;
-
-      const start = Math.max(1, currentPage - 2);
-      const end = Math.min(total, currentPage + 2);
-      for (let i = start; i <= end; i++) {
-        html += `<button class="${i === currentPage ? "active" : ""}" onclick="goPage(${i})">${i}</button>`;
-      }
-      html += `<button ${currentPage === total ? "disabled" : ""} onclick="goPage(${currentPage + 1})">Suivant »</button>`;
-      pag.innerHTML = html;
-    }
-
-    function goPage(p) {
-      currentPage = p;
-      loadTab();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
-
-    document.getElementById("searchInput").addEventListener("keypress", e => {
-      if (e.key === "Enter") doSearchFrom();
-    });
-
-    loadTab();
+    loadBackdrop();
   </script>
 </body>
 </html>

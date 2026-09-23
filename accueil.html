@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRINCE MOVIE — Films, Séries & Animés en streaming</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><rect x='4' y='4' width='92' height='92' rx='24' fill='%23e2261c'/><path d='M40 28l34 22-34 22V28z' fill='%230a0a0a'/></svg>">
+</head>
+<body>
+  <header>
+    <a href="accueil.html" class="logo"><svg class="logo-mark" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="22" height="22" rx="6" fill="#e2261c"/><path d="M9.5 7l8 5-8 5V7z" fill="#0a0a0a"/></svg>PRINCE MOVIE</a>
+  </header>
+
+  <div id="hero"></div>
+
+  <main class="rows-wrap" id="rows">
+    <div class="loader">Chargement</div>
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    const DETAIL_PAGES = {
+      movie: "film.html", series: "serie.html",
+      anime: "anime.html", drama: "drama.html", webtoon: "webtoon.html"
+    };
+
+    const SECTIONS = [
+      { key: "movies",   title: "Films populaires",  seeAll: "catalogue.html?tab=movies" },
+      { key: "series",   title: "Séries",             seeAll: "catalogue.html?tab=series" },
+      { key: "anime",    title: "Animés",             seeAll: "catalogue.html?tab=anime" },
+      { key: "dramas",   title: "K-Dramas",           seeAll: "catalogue.html?tab=dramas" },
+      { key: "webtoons", title: "Webtoons",           seeAll: "catalogue.html?tab=webtoons" },
+    ];
+
+    function renderHero(item) {
+      const heroEl = document.getElementById("hero");
+      if (!item) { heroEl.remove(); return; }
+
+      const page = DETAIL_PAGES[item.type] || "film.html";
+      const badgeClass = item.version === "VOSTFR" ? "vostfr" : item.version === "TrueFrench" ? "truefrench" : "";
+
+      heroEl.className = "hero";
+      heroEl.style.backgroundImage = `url('${item.image}')`;
+      heroEl.innerHTML = `
+        <div class="hero-content">
+          <div class="hero-badges">
+            <span class="badge ${badgeClass}">${item.version || ""}</span>
+            ${item.year ? `<span class="tag">${item.year}</span>` : ""}
+          </div>
+          <h1>${item.title}</h1>
+          <p>${item.synopsis || "Découvre ce titre en streaming sur PRINCE MOVIE."}</p>
+          <div class="hero-actions">
+            <a class="btn" href="${page}?slug=${item.slug}">▶ Regarder</a>
+            <a class="btn-outline" href="${page}?slug=${item.slug}">ℹ Plus d'infos</a>
+          </div>
+        </div>
+      `;
+    }
+
+    function rowCard(item) {
+      const page = DETAIL_PAGES[item.type] || "film.html";
+      const badgeClass = item.version === "VOSTFR" ? "vostfr" : item.version === "TrueFrench" ? "truefrench" : "";
+      const inList = isInMyList(item.slug);
+      return `
+        <div class="row-card" title="${item.title}">
+          <button type="button" class="mylist-heart ${inList ? "active" : ""}" data-slug="${item.slug}" aria-label="Ma Liste">${inList ? "♥" : "♡"}</button>
+          <a href="${page}?slug=${item.slug}">
+            <img src="${item.image}" alt="${item.title}" loading="lazy"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22160%22 height=%22230%22%3E%3Crect fill=%22%23222%22 width=%22160%22 height=%22230%22/%3E%3C/svg%3E'">
+            <span class="badge ${badgeClass} row-card-badge">${item.version || ""}</span>
+          </a>
+        </div>`;
+    }
+
+    function bindHearts(scope) {
+      scope.querySelectorAll(".mylist-heart").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const slug = btn.dataset.slug;
+          const item = allItemsBySlug[slug];
+          if (!item) return;
+          const added = toggleMyList(item);
+          btn.classList.toggle("active", added);
+          btn.textContent = added ? "♥" : "♡";
+          if (!added) loadHome(); // rafraîchit la rangée "Ma Liste" si on vient de retirer un titre
+        });
+      });
+    }
+
+    const allItemsBySlug = {};
+
+    async function loadHome() {
+      const rowsEl = document.getElementById("rows");
+      let heroSet = false;
+      let anyLoaded = false;
+      rowsEl.innerHTML = "";
+
+      // Rangée "Ma Liste" en premier, si elle contient des titres
+      const myList = getMyList();
+      if (myList.length) {
+        myList.forEach(i => allItemsBySlug[i.slug] = i);
+        const block = document.createElement("div");
+        block.className = "row-block";
+        block.innerHTML = `
+          <div class="row-head"><h2>Ma Liste</h2></div>
+          <div class="row-scroll">${myList.map(rowCard).join("")}</div>
+        `;
+        rowsEl.appendChild(block);
+        bindHearts(block);
+      }
+
+      for (const section of SECTIONS) {
+        try {
+          const { data } = await api(`/${section.key}`, { page: 1 });
+          if (!data || !data.length) continue;
+          anyLoaded = true;
+          data.forEach(i => allItemsBySlug[i.slug] = i);
+
+          if (!heroSet) {
+            // Titre vedette pris au hasard parmi les premiers résultats
+            const pick = data[Math.floor(Math.random() * Math.min(data.length, 5))];
+            renderHero(pick);
+            heroSet = true;
+          }
+
+          const block = document.createElement("div");
+          block.className = "row-block";
+          block.innerHTML = `
+            <div class="row-head">
+              <h2>${section.title}</h2>
+              <a href="${section.seeAll}">Tout voir ›</a>
+            </div>
+            <div class="row-scroll">${data.map(rowCard).join("")}</div>
+          `;
+          rowsEl.appendChild(block);
+          bindHearts(block);
+        } catch (e) {
+          console.error(`Erreur sur ${section.key} :`, e);
+        }
+      }
+
+      if (!anyLoaded && !myList.length) {
+        renderHero(null);
+        rowsEl.innerHTML = `
+          <div class="error-box">
+            <div class="error-icon">${WARN_ICON}</div>
+            <h2>Une erreur est survenue</h2>
+            <p>Impossible de charger le catalogue pour le moment.</p>
+            <button class="btn" onclick="loadHome()">Réessayer</button>
+          </div>`;
+      }
+    }
+
+    loadHome();
+  </script>
+</body>
+</html>

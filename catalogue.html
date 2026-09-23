@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRINCE MOVIE — Streaming VF & VOSTFR</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><rect x='4' y='4' width='92' height='92' rx='24' fill='%23e2261c'/><path d='M40 28l34 22-34 22V28z' fill='%230a0a0a'/></svg>">
+</head>
+<body>
+  <header>
+    <a href="accueil.html" class="logo"><svg class="logo-mark" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="22" height="22" rx="6" fill="#e2261c"/><path d="M9.5 7l8 5-8 5V7z" fill="#0a0a0a"/></svg>PRINCE MOVIE</a>
+    <div class="search-box">
+      <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <input id="searchInput" type="text" placeholder="Rechercher un titre...">
+    </div>
+  </header>
+
+  <main class="has-chips">
+    <div class="chip-row" id="chipRow">
+      <button type="button" class="chip active" data-tab="movies">Films</button>
+      <button type="button" class="chip" data-tab="series">Séries</button>
+      <button type="button" class="chip" data-tab="anime">Animés</button>
+      <button type="button" class="chip" data-tab="dramas">K-Dramas</button>
+      <button type="button" class="chip" data-tab="webtoons">Webtoons</button>
+    </div>
+    <h1 class="section-title" id="title">Films</h1>
+    <div id="app"><div class="loader">Chargement</div></div>
+    <div class="pagination" id="pagination"></div>
+  </main>
+
+  <script src="api.js"></script>
+  <script>
+    const validTabs = ["movies", "series", "anime", "dramas", "webtoons"];
+    const tabParam = new URLSearchParams(location.search).get("tab");
+    let currentTab = validTabs.includes(tabParam) ? tabParam : "movies";
+    let currentPage = 1;
+    let hasContent = false; // vrai dès qu'une grille de films est affichée
+
+    const TITLES = {
+      movies: "Films", series: "Séries", anime: "Animés",
+      dramas: "K-Dramas", webtoons: "Webtoons"
+    };
+
+    const DETAIL_PAGES = {
+      movie: "film.html", series: "serie.html",
+      anime: "anime.html", drama: "drama.html", webtoon: "webtoon.html"
+    };
+
+    document.querySelectorAll(".chip").forEach(chip => {
+      if (chip.dataset.tab === currentTab) chip.classList.add("active");
+      else chip.classList.remove("active");
+      chip.onclick = () => {
+        document.querySelectorAll(".chip").forEach(x => x.classList.remove("active"));
+        chip.classList.add("active");
+        currentTab = chip.dataset.tab;
+        currentPage = 1;
+        hasContent = false;
+        document.getElementById("title").textContent = TITLES[currentTab];
+        loadTab();
+      };
+    });
+
+    document.getElementById("title").textContent = TITLES[currentTab];
+
+    async function loadTab() {
+      const app = document.getElementById("app");
+      const pag = document.getElementById("pagination");
+
+      // On ne montre le loader plein écran que si rien n'est encore affiché.
+      // Sinon (ex: changement de page sur un onglet déjà chargé), on garde
+      // la grille actuelle visible pendant le chargement.
+      if (!hasContent) {
+        app.innerHTML = `<div class="loader">Chargement</div>`;
+        pag.innerHTML = "";
+      }
+
+      try {
+        const json = await api(`/${currentTab}`, { page: currentPage });
+        hasContent = true;
+        renderGrid(json.data);
+        renderPagination(json.meta);
+      } catch (e) {
+        console.error("Erreur :", e);
+        if (hasContent) {
+          // On garde les films déjà affichés, on prévient juste avec un bandeau
+          showRetryBanner("Impossible de charger cette page. " + e.message, loadTab);
+        } else {
+          showError(e.message);
+        }
+      }
+    }
+
+    function renderGrid(items) {
+      const app = document.getElementById("app");
+      if (!items || !items.length) {
+        app.innerHTML = "<p>Aucun résultat.</p>";
+        return;
+      }
+
+      items.forEach(i => allItemsBySlug[i.slug] = i);
+
+      app.innerHTML = `<div class="grid">` + items.map(item => {
+        const page = DETAIL_PAGES[item.type] || "film.html";
+        const badgeClass = item.version === "VOSTFR" ? "vostfr"
+                         : item.version === "TrueFrench" ? "truefrench" : "";
+        const epTag = item.latest_episode || item.latest_chapter || "";
+        const inList = isInMyList(item.slug);
+
+        return `
+          <div class="card" title="${item.title}">
+            <button type="button" class="mylist-heart ${inList ? "active" : ""}" data-slug="${item.slug}" aria-label="Ma Liste">${inList ? "♥" : "♡"}</button>
+            <a href="${page}?slug=${item.slug}">
+              <img src="${item.image}" alt="${item.title}" loading="lazy"
+                   onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22300%22/%3E%3C/svg%3E'">
+              <span class="badge ${badgeClass} row-card-badge">${item.version || ""}</span>
+              ${epTag ? `<span class="tag card-ep-tag">${epTag}</span>` : ""}
+            </a>
+          </div>`;
+      }).join("") + `</div>`;
+
+      app.querySelectorAll(".mylist-heart").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const item = allItemsBySlug[btn.dataset.slug];
+          if (!item) return;
+          const added = toggleMyList(item);
+          btn.classList.toggle("active", added);
+          btn.textContent = added ? "♥" : "♡";
+        });
+      });
+    }
+
+    const allItemsBySlug = {};
+
+    function renderPagination(meta) {
+      if (!meta || meta.last_page <= 1) return;
+      const pag = document.getElementById("pagination");
+      const total = meta.last_page;
+      let html = `<button ${currentPage === 1 ? "disabled" : ""} onclick="goPage(${currentPage - 1})">« Précédent</button>`;
+
+      const start = Math.max(1, currentPage - 2);
+      const end = Math.min(total, currentPage + 2);
+      for (let i = start; i <= end; i++) {
+        html += `<button class="${i === currentPage ? "active" : ""}" onclick="goPage(${i})">${i}</button>`;
+      }
+      html += `<button ${currentPage === total ? "disabled" : ""} onclick="goPage(${currentPage + 1})">Suivant »</button>`;
+      pag.innerHTML = html;
+    }
+
+    function goPage(p) {
+      currentPage = p;
+      loadTab();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.getElementById("searchInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") doSearchFrom();
+    });
+
+    loadTab();
+  </script>
+</body>
+</html>
