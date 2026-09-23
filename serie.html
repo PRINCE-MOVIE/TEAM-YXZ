@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Série — PRINCE MOVIE</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><rect x='4' y='4' width='92' height='92' rx='24' fill='%23e2261c'/><path d='M40 28l34 22-34 22V28z' fill='%230a0a0a'/></svg>">
+</head>
+<body class="detail-page">
+  <header>
+    <a href="accueil.html" class="logo"><svg class="logo-mark" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="22" height="22" rx="6" fill="#e2261c"/><path d="M9.5 7l8 5-8 5V7z" fill="#0a0a0a"/></svg>PRINCE MOVIE</a>
+  </header>
+
+  <main id="app"><div class="loader">Chargement</div></main>
+
+  <script src="api.js"></script>
+  <script>
+    const slug = getSlug();
+
+    if (!slug) {
+      showError("Aucune série sélectionnée.");
+    } else {
+      loadSerie();
+    }
+
+    async function loadSerie() {
+      try {
+        const { data: s } = await api(`/series/${slug}`);
+
+        if (s.type === "movie") {
+          location.href = `film.html?slug=${slug}`;
+          return;
+        }
+
+        document.title = `${s.title} — PRINCE MOVIE`;
+
+        const saisons = {};
+        (s.episodes || []).forEach(ep => {
+          const n = ep.season || "1";
+          if (!saisons[n]) saisons[n] = [];
+          saisons[n].push(ep);
+        });
+
+        const episodesHTML = Object.keys(saisons)
+          .sort((a, b) => +a - +b)
+          .map(num => `
+            <h2 class="section-title" style="margin-top:30px;font-size:18px">Saison ${num}</h2>
+            <div class="episodes-list">
+              ${saisons[num].map(ep => `
+                <a class="episode-item" href="lecteur.html?id=${ep.episode_id}&title=${encodeURIComponent(s.title + ' - S' + ep.season + 'E' + ep.number)}">
+                  <div class="saison">S${ep.season} E${ep.number}</div>
+                  <div>${ep.title || "Épisode " + ep.number}</div>
+                </a>
+              `).join("")}
+            </div>
+          `).join("");
+
+        document.getElementById("app").innerHTML = `
+          <div class="detail">
+            <img class="poster" src="${s.image}" alt="${s.title}">
+            <div class="meta">
+              <h1>${s.title} ${s.year ? `(${s.year})` : ""}</h1>
+              <div class="tags">
+                <span class="badge ${s.version === 'VOSTFR' ? 'vostfr' : ''}">${s.version}</span>
+                ${(s.genres || []).map(g => `<span class="tag">${g}</span>`).join("")}
+                ${s.status ? `<span class="tag">${s.status}</span>` : ""}
+              </div>
+              <p class="synopsis">${s.synopsis || ""}</p>
+              ${s.first_episode_id ? `<a class="btn" href="lecteur.html?id=${s.first_episode_id}&title=${encodeURIComponent(s.title)}">▶ Voir l'épisode 1</a>` : ""}
+            </div>
+          </div>
+
+          <h1 class="section-title">Épisodes (${(s.episodes || []).length})</h1>
+          ${episodesHTML || "<p>Aucun épisode disponible.</p>"}
+        `;
+      } catch (e) {
+        if (e.code === "wrong_type") {
+          location.href = `film.html?slug=${slug}`;
+        } else {
+          showError(e.message);
+        }
+      }
+    }
+  </script>
+</body>
+  </html>

@@ -5,16 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Animé — PRINCE MOVIE</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><rect x='4' y='4' width='92' height='92' rx='24' fill='%23e2261c'/><path d='M40 28l34 22-34 22V28z' fill='%230a0a0a'/></svg>">
 </head>
 <body class="detail-page">
   <header>
-    <a href="index.html" class="logo">PRINCE MOVIE</a>
-    <nav><a href="index.html">Accueil</a></nav>
-    <div class="search-box">
-      <input id="searchInput" type="text" placeholder="Rechercher...">
-      <button onclick="doSearchFrom()">🔍</button>
-    </div>
+    <a href="accueil.html" class="logo"><svg class="logo-mark" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="22" height="22" rx="6" fill="#e2261c"/><path d="M9.5 7l8 5-8 5V7z" fill="#0a0a0a"/></svg>PRINCE MOVIE</a>
   </header>
 
   <main id="app"><div class="loader">Chargement</div></main>
@@ -63,10 +58,6 @@
         showError(e.message);
       }
     }
-
-    document.getElementById("searchInput").addEventListener("keypress", e => {
-      if (e.key === "Enter") doSearchFrom();
-    });
   </script>
 </body>
 </html>

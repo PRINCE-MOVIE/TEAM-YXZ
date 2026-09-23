@@ -51,6 +51,11 @@ async function api(path, params = {}, retries = PROXIES.length - 1) {
    ========================================================= */
 const AUTH_KEY = "pm_user";
 const SESSION_KEY = "pm_session";
+const MYLIST_KEY = "pm_mylist";
+
+// Pages accessibles sans être connecté. Toutes les autres redirigent
+// vers la page de bienvenue si personne n'est connecté.
+const PUBLIC_PAGES = ["index.html", "inscription.html", "connexion.html", ""];
 
 function getCurrentUser() {
   try {
@@ -94,6 +99,39 @@ function updateUser(patch) {
   return updated;
 }
 
+// Redirige vers la page de bienvenue si la page courante est protégée
+// et que personne n'est connecté.
+function guardAuth() {
+  const page = location.pathname.split("/").pop();
+  if (PUBLIC_PAGES.includes(page)) return;
+  if (!isLoggedIn() || !getCurrentUser()) {
+    location.href = "index.html";
+  }
+}
+guardAuth();
+
+/* ---------- Ma Liste ---------- */
+function getMyList() {
+  try { return JSON.parse(localStorage.getItem(MYLIST_KEY) || "[]"); }
+  catch (e) { return []; }
+}
+
+function isInMyList(slug) {
+  return getMyList().some(i => i.slug === slug);
+}
+
+function toggleMyList(item) {
+  const list = getMyList();
+  const idx = list.findIndex(i => i.slug === item.slug);
+  if (idx >= 0) {
+    list.splice(idx, 1);
+  } else {
+    list.unshift({ slug: item.slug, title: item.title, image: item.image, type: item.type, version: item.version });
+  }
+  localStorage.setItem(MYLIST_KEY, JSON.stringify(list));
+  return idx < 0; // true si on vient d'ajouter, false si on vient de retirer
+}
+
 function renderAccountMenu() {
   const header = document.querySelector("header");
   if (!header) return;
@@ -112,8 +150,9 @@ function renderAccountMenu() {
       <button type="button" class="account-avatar" id="accountToggle">${initiale}</button>
       <div class="account-dropdown" id="accountDropdown">
         <div class="account-dropdown-name">${user.prenom || ""} ${user.nom || ""}</div>
-        <a href="parametres.html">⚙️ Paramètres</a>
-        <button type="button" id="logoutBtn">🚪 Déconnexion</button>
+        <div class="account-dropdown-sub">${user.email || ""}</div>
+        <div class="account-dropdown-sub">${user.telephone || ""}</div>
+        <button type="button" id="logoutBtn">Déconnexion</button>
       </div>
     `;
   } else {
@@ -137,7 +176,42 @@ function renderAccountMenu() {
   }
 }
 
+/* =========================================================
+   NAVIGATION DU BAS (façon appli Netflix mobile)
+   ========================================================= */
+const NAV_ICONS = {
+  home: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"/></svg>`,
+  grid: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>`,
+  search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>`,
+  heart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.1 2 4.5 5.6 4c2-.3 3.9.6 5 2.2C11.7 4.6 13.6 3.7 15.6 4c3.6.5 5.2 4.1 3.6 7.7C21 16.4 12 21 12 21Z"/></svg>`,
+  gear: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg>`,
+};
+
+function renderBottomNav() {
+  const page = location.pathname.split("/").pop();
+  if (PUBLIC_PAGES.includes(page)) return; // pas de barre sur bienvenue/inscription/connexion
+  if (document.getElementById("bottomNav")) return;
+
+  const items = [
+    { href: "accueil.html", label: "Accueil", match: ["accueil.html"], icon: NAV_ICONS.home },
+    { href: "catalogue.html", label: "Parcourir", match: ["catalogue.html", "film.html", "serie.html", "anime.html", "drama.html", "webtoon.html", "lecteur.html"], icon: NAV_ICONS.grid },
+    { href: "recherche.html", label: "Recherche", match: ["recherche.html"], icon: NAV_ICONS.search },
+    { href: "maliste.html", label: "Ma Liste", match: ["maliste.html"], icon: NAV_ICONS.heart },
+    { href: "parametres.html", label: "Compte", match: ["parametres.html"], icon: NAV_ICONS.gear },
+  ];
+
+  const nav = document.createElement("nav");
+  nav.id = "bottomNav";
+  nav.className = "bottom-nav";
+  nav.innerHTML = items.map(it =>
+    `<a href="${it.href}" class="${it.match.includes(page) ? "active" : ""}">${it.icon}<span>${it.label}</span></a>`
+  ).join("");
+  document.body.appendChild(nav);
+  document.body.classList.add("has-bottom-nav");
+}
+
 renderAccountMenu();
+renderBottomNav();
 
 const getSlug = (key = "slug") => new URLSearchParams(location.search).get(key);
 const getParam = (key) => new URLSearchParams(location.search).get(key);
@@ -145,6 +219,8 @@ const getParam = (key) => new URLSearchParams(location.search).get(key);
 // Affiche un bandeau d'erreur discret SANS effacer le contenu déjà affiché
 // (contrairement à showError qui remplace tout #app). Utile quand une
 // requête échoue après qu'on ait déjà affiché des résultats.
+const WARN_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M10.3 3.6 1.8 18a1.6 1.6 0 0 0 1.4 2.4h17.6a1.6 1.6 0 0 0 1.4-2.4L13.7 3.6a1.6 1.6 0 0 0-2.8 0Z"/><path d="M12 16.2h.01"/></svg>`;
+
 function showRetryBanner(message, onRetry) {
   const old = document.getElementById("retry-banner");
   if (old) old.remove();
@@ -153,7 +229,7 @@ function showRetryBanner(message, onRetry) {
   banner.id = "retry-banner";
   banner.className = "retry-banner";
   banner.innerHTML = `
-    <span>⚠️ ${message || "Erreur de connexion à la source."}</span>
+    <span class="retry-banner-msg">${WARN_ICON}${message || "Erreur de connexion à la source."}</span>
     <button type="button">Réessayer</button>
   `;
   banner.querySelector("button").onclick = () => {
@@ -166,11 +242,13 @@ function showRetryBanner(message, onRetry) {
 function showError(message) {
   const app = document.getElementById("app");
   if (!app) return;
+  const homeLink = PUBLIC_PAGES.includes(location.pathname.split("/").pop()) ? "index.html" : "accueil.html";
   app.innerHTML = `
     <div class="error-box">
-      <h2> erreur</h2>
+      <div class="error-icon">${WARN_ICON}</div>
+      <h2>Une erreur est survenue</h2>
       <p>${message}</p>
-      <a href="index.html" class="btn">Retour à l'accueil</a>
+      <a href="${homeLink}" class="btn">Retour à l'accueil</a>
     </div>
   `;
 }

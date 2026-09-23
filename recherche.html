@@ -5,81 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Recherche — PRINCE MOVIE</title>
   <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>👑</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0a0a'/><rect x='4' y='4' width='92' height='92' rx='24' fill='%23e2261c'/><path d='M40 28l34 22-34 22V28z' fill='%230a0a0a'/></svg>">
 </head>
-<body class="netflix-mode">
+<body>
   <header>
-    <a href="index.html" class="logo">
-      <svg viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#f5b400"/>
-            <stop offset="50%" stop-color="#ff8a00"/>
-            <stop offset="100%" stop-color="#f5b400"/>
-          </linearGradient>
-        </defs>
-        <text x="0" y="30" font-family="Arial Black, sans-serif" font-size="28" font-weight="900" fill="url(#goldGrad)" letter-spacing="2">PRINCE</text>
-        <text x="145" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#fff" letter-spacing="1">MOVIE</text>
-      </svg>
+    <a href="accueil.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="22" height="22" rx="6" fill="#e2261c"/><path d="M9.5 7l8 5-8 5V7z" fill="#0a0a0a"/></svg>PRINCE MOVIE
     </a>
-    <nav><a href="index.html">Accueil</a></nav>
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input id="searchInput" type="text" placeholder="Rechercher...">
-    </div>
   </header>
 
-  <main class="netflix-main" style="padding-top:120px">
-    <h2 class="row-title" id="title">Recherche</h2>
-    <div id="app"><div class="loader">Chargement</div></div>
+  <main>
+    <div class="search-hero">
+      <div class="search-box search-box-lg">
+        <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+        <input id="searchInput" type="text" placeholder="Titres, animés, séries...">
+      </div>
+    </div>
+
+    <h1 class="section-title" id="title">Recherche</h1>
+    <div id="app"></div>
   </main>
 
   <script src="api.js"></script>
   <script>
-    const q = getParam("q") || "";
     const DETAIL_PAGES = {
       movie: "film.html", series: "serie.html",
-      anime: "anime.html", drama: "drama.html"
+      anime: "anime.html", drama: "drama.html", webtoon: "webtoon.html"
     };
+
+    const allItemsBySlug = {};
+    const q = getParam("q") || "";
+    document.getElementById("searchInput").value = q;
+
+    function cardHtml(item) {
+      const page = DETAIL_PAGES[item.type] || "film.html";
+      const badgeClass = item.version === "VOSTFR" ? "vostfr" : item.version === "TrueFrench" ? "truefrench" : "";
+      const inList = isInMyList(item.slug);
+      allItemsBySlug[item.slug] = item;
+      return `
+        <div class="card" title="${item.title}">
+          <button type="button" class="mylist-heart ${inList ? "active" : ""}" data-slug="${item.slug}" aria-label="Ma Liste">${inList ? "♥" : "♡"}</button>
+          <a href="${page}?slug=${item.slug}">
+            <img src="${item.image}" alt="${item.title}" loading="lazy"
+                 onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22300%22%3E%3Crect fill=%22%23222%22 width=%22200%22 height=%22300%22/%3E%3C/svg%3E'">
+            <span class="badge ${badgeClass} row-card-badge">${item.version || ""}</span>
+          </a>
+        </div>`;
+    }
+
+    function bindHearts() {
+      document.querySelectorAll(".mylist-heart").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.preventDefault();
+          const item = allItemsBySlug[btn.dataset.slug];
+          if (!item) return;
+          const added = toggleMyList(item);
+          btn.classList.toggle("active", added);
+          btn.textContent = added ? "♥" : "♡";
+        });
+      });
+    }
 
     async function load() {
       const titleEl = document.getElementById("title");
       const app = document.getElementById("app");
 
       if (!q || q.length < 2) {
-        app.innerHTML = "<p style='color:#999'>Entrez au moins 2 caractères.</p>";
+        titleEl.textContent = "Recherche";
+        app.innerHTML = `<p style="color:var(--text-muted)">Tape au moins 2 caractères pour lancer la recherche.</p>`;
         return;
       }
 
-      document.getElementById("searchInput").value = q;
       titleEl.textContent = `Résultats pour « ${q} »`;
+      app.innerHTML = `<div class="loader">Chargement</div>`;
 
       try {
         const { data, meta } = await api("/search", { q });
         if (!data.length) {
-          app.innerHTML = `<p style='color:#999'>Aucun résultat pour « ${q} ».</p>`;
+          app.innerHTML = `<p style="color:var(--text-muted)">Aucun résultat pour « ${q} ».</p>`;
           return;
         }
         titleEl.textContent = `Résultats pour « ${q} » (${meta.count})`;
-
-        app.innerHTML = `<div class="netflix-row">` + data.map(item => {
-          const page = DETAIL_PAGES[item.type] || "film.html";
-          const badgeClass = item.version === "VOSTFR" ? "vostfr" : "";
-          return `
-            <a class="netflix-card" href="${page}?slug=${item.slug}">
-              <div class="poster-wrap">
-                <img src="${item.image}" alt="${item.title}" loading="lazy">
-                <div class="card-overlay"><div class="card-play">▶</div></div>
-                <span class="badge ${badgeClass}">${item.version}</span>
-              </div>
-              <div class="card-info">
-                <strong>${item.title}</strong>
-                <div class="tag">${item.type}</div>
-              </div>
-            </a>`;
-        }).join("") + `</div>`;
+        app.innerHTML = `<div class="grid">` + data.map(cardHtml).join("") + `</div>`;
+        bindHearts();
       } catch (e) {
-        showError(e.message);
+        app.innerHTML = `<div class="error-box"><div class="error-icon">${WARN_ICON}</div><h2>Une erreur est survenue</h2><p>${e.message}</p></div>`;
       }
     }
 
