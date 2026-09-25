@@ -64,8 +64,12 @@
 
     async function loadChapter(chapterId) {
       try {
-        const { data: w } = await api(`/webtoons/${slug}`);
-        const { data: pages } = await api(`/webtoons/${slug}/pages`, { chapter: chapterId });
+        // Les deux appels sont indépendants : on les lance en parallèle
+        // plutôt que d'attendre le premier avant de lancer le second.
+        const [{ data: w }, { data: pages }] = await Promise.all([
+          api(`/webtoons/${slug}`),
+          api(`/webtoons/${slug}/pages`, { chapter: chapterId }),
+        ]);
 
         document.title = `${w.title} — Chapitre — PRINCE MOVIE`;
 
