@@ -21,6 +21,7 @@
       <div class="loader" style="padding:200px 0">Chargement du lecteur</div>
     </div>
     <div class="servers-tabs" id="tabs"></div>
+    <p id="fallbackLink" style="text-align:center;margin-top:14px;font-size:14px;color:var(--text-muted)"></p>
   </main>
 
   <script src="api.js"></script>
@@ -77,11 +78,27 @@
       document.querySelectorAll(".server-btn").forEach((b, idx) => {
         b.classList.toggle("active", idx === i);
       });
+      // Si le site tourne en HTTPS et que le lien du serveur est en HTTP,
+      // le navigateur bloque l'iframe sans le dire clairement ("contenu
+      // mixte") : le lecteur reste juste vide. On tente la version HTTPS
+      // du même lien, qui fonctionne dans la majorité des cas.
+      const originalLink = servers[i].server_link;
+      let link = originalLink;
+      if (location.protocol === "https:" && link.startsWith("http://")) {
+        link = "https://" + link.slice("http://".length);
+      }
       document.getElementById("player").innerHTML = `
-        <iframe src="${servers[i].server_link}" allowfullscreen
+        <iframe src="${link}" allowfullscreen
           referrerpolicy="no-referrer"
           sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
       `;
+      // Solution de repli si l'iframe reste vide (lien qui ne supporte
+      // pas du tout le HTTPS, bloqueurs de pub, etc.) : un lien direct
+      // qu'on peut ouvrir dans un nouvel onglet fonctionne toujours,
+      // car la navigation directe n'est pas soumise à la même règle
+      // de "contenu mixte" que le contenu intégré dans une iframe.
+      document.getElementById("fallbackLink").innerHTML =
+        `Le lecteur ne s'affiche pas ? <a href="${originalLink}" target="_blank" rel="noopener noreferrer" style="color:var(--accent);font-weight:700">Ouvrir dans un nouvel onglet</a>`;
     }
 
     loadServers();

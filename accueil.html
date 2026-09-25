@@ -73,6 +73,30 @@
         </div>`;
     }
 
+    // Met à jour TOUS les cœurs affichés pour un même titre (il peut
+    // apparaître à la fois dans "Ma Liste" et dans une rangée de genre),
+    // pour éviter qu'un cœur reste "rempli" à un endroit et "vide" à un
+    // autre après un clic.
+    function syncHeartButtons(slug, added) {
+      document.querySelectorAll(`.mylist-heart[data-slug="${slug}"]`).forEach(b => {
+        b.classList.toggle("active", added);
+        b.textContent = added ? "♥" : "♡";
+      });
+    }
+
+    // Retire la carte d'un titre de la rangée "Ma Liste" sans recharger
+    // toute la page (avant : on rappelait loadHome(), qui effaçait puis
+    // rechargeait TOUTES les rangées depuis l'API — c'est ce qui donnait
+    // l'impression que les films "disparaissaient" après un clic).
+    function removeFromMyListRow(slug) {
+      const block = document.getElementById("myListBlock");
+      if (!block) return;
+      const heart = block.querySelector(`.mylist-heart[data-slug="${slug}"]`);
+      const card = heart && heart.closest(".row-card");
+      if (card) card.remove();
+      if (!block.querySelector(".row-card")) block.remove();
+    }
+
     function bindHearts(scope) {
       scope.querySelectorAll(".mylist-heart").forEach(btn => {
         btn.addEventListener("click", (e) => {
@@ -81,9 +105,8 @@
           const item = allItemsBySlug[slug];
           if (!item) return;
           const added = toggleMyList(item);
-          btn.classList.toggle("active", added);
-          btn.textContent = added ? "♥" : "♡";
-          if (!added) loadHome(); // rafraîchit la rangée "Ma Liste" si on vient de retirer un titre
+          syncHeartButtons(slug, added);
+          if (!added) removeFromMyListRow(slug);
         });
       });
     }
@@ -92,8 +115,6 @@
 
     async function loadHome() {
       const rowsEl = document.getElementById("rows");
-      let heroSet = false;
-      let anyLoaded = false;
       rowsEl.innerHTML = "";
 
       // Rangée "Ma Liste" en premier, si elle contient des titres
@@ -101,6 +122,7 @@
       if (myList.length) {
         myList.forEach(i => allItemsBySlug[i.slug] = i);
         const block = document.createElement("div");
+        block.id = "myListBlock";
         block.className = "row-block";
         block.innerHTML = `
           <div class="row-head"><h2>Ma Liste</h2></div>
@@ -110,35 +132,47 @@
         bindHearts(block);
       }
 
-      for (const section of SECTIONS) {
-        try {
-          const { data } = await api(`/${section.key}`, { page: 1 });
-          if (!data || !data.length) continue;
-          anyLoaded = true;
-          data.forEach(i => allItemsBySlug[i.slug] = i);
+      // On charge toutes les sections EN PARALLÈLE (au lieu de les
+      // attendre une par une) : sur une connexion lente via proxy CORS,
+      // ça réduit le temps de chargement de la page d'accueil d'un
+      // facteur proche du nombre de sections.
+      const results = await Promise.allSettled(
+        SECTIONS.map(section => api(`/${section.key}`, { page: 1 }))
+      );
 
-          if (!heroSet) {
-            // Titre vedette pris au hasard parmi les premiers résultats
-            const pick = data[Math.floor(Math.random() * Math.min(data.length, 5))];
-            renderHero(pick);
-            heroSet = true;
-          }
+      let heroSet = false;
+      let anyLoaded = false;
 
-          const block = document.createElement("div");
-          block.className = "row-block";
-          block.innerHTML = `
-            <div class="row-head">
-              <h2>${section.title}</h2>
-              <a href="${section.seeAll}">Tout voir ›</a>
-            </div>
-            <div class="row-scroll">${data.map(rowCard).join("")}</div>
-          `;
-          rowsEl.appendChild(block);
-          bindHearts(block);
-        } catch (e) {
-          console.error(`Erreur sur ${section.key} :`, e);
+      results.forEach((result, idx) => {
+        const section = SECTIONS[idx];
+        if (result.status !== "fulfilled") {
+          console.error(`Erreur sur ${section.key} :`, result.reason);
+          return;
         }
-      }
+        const { data } = result.value;
+        if (!data || !data.length) return;
+        anyLoaded = true;
+        data.forEach(i => allItemsBySlug[i.slug] = i);
+
+        if (!heroSet) {
+          // Titre vedette pris au hasard parmi les premiers résultats
+          const pick = data[Math.floor(Math.random() * Math.min(data.length, 5))];
+          renderHero(pick);
+          heroSet = true;
+        }
+
+        const block = document.createElement("div");
+        block.className = "row-block";
+        block.innerHTML = `
+          <div class="row-head">
+            <h2>${section.title}</h2>
+            <a href="${section.seeAll}">Tout voir ›</a>
+          </div>
+          <div class="row-scroll">${data.map(rowCard).join("")}</div>
+        `;
+        rowsEl.appendChild(block);
+        bindHearts(block);
+      });
 
       if (!anyLoaded && !myList.length) {
         renderHero(null);

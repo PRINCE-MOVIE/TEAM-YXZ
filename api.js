@@ -9,38 +9,87 @@ const PROXIES = [
   "https://api.codetabs.com/v1/proxy?quest=",
 ];
 
-async function api(path, params = {}, retries = PROXIES.length - 1) {
+// Petit cache mémoire + sessionStorage pour éviter de retaper les proxys
+// CORS quand on revisite la même page (accueil <-> catalogue, retour
+// arrière, etc.). C'est la principale source de lenteur ressentie car
+// chaque appel traverse un proxy public en plus de l'API elle-même.
+const CACHE_TTL_MS = 2 * 60 * 1000;
+const memCache = new Map();
+
+function cacheRead(key) {
+  const now = Date.now();
+  const mem = memCache.get(key);
+  if (mem && now - mem.t < CACHE_TTL_MS) return mem.v;
+  try {
+    const raw = sessionStorage.getItem("pm_cache:" + key);
+    if (!raw) return null;
+    const { t, v } = JSON.parse(raw);
+    if (now - t >= CACHE_TTL_MS) return null;
+    memCache.set(key, { t, v });
+    return v;
+  } catch (e) {
+    return null;
+  }
+}
+
+function cacheWrite(key, v) {
+  const entry = { t: Date.now(), v };
+  memCache.set(key, entry);
+  try { sessionStorage.setItem("pm_cache:" + key, JSON.stringify(entry)); } catch (e) {}
+}
+
+async function api(path, params = {}) {
   const url = new URL(API_BASE + path);
   Object.entries(params).forEach(([k, v]) => {
     if (v !== null && v !== undefined && v !== "") url.searchParams.set(k, v);
   });
+  const urlStr = url.toString();
 
-  let lastErr;
+  const cacheKey = urlStr;
+  const cached = cacheRead(cacheKey);
+  if (cached) return cached;
 
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const proxy = PROXIES[attempt % PROXIES.length];
-    const proxyUrl = proxy + encodeURIComponent(url.toString());
+  // On interroge les 3 proxys CORS EN MÊME TEMPS, et on prend le premier
+  // qui répond correctement — au lieu d'attendre le délai complet d'un
+  // proxy en rate-limit (jusqu'à 10s) avant même d'essayer le suivant.
+  // C'est ce qui rendait le site lent et faisait parfois échouer le
+  // lecteur vidéo (la liste des serveurs mettait trop de temps à arriver
+  // ou expirait avant que le 2e/3e proxy soit tenté).
+  const controllers = PROXIES.map(() => new AbortController());
 
-    try {
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
-      const json = await res.json();
+  const attempts = PROXIES.map((proxy, i) => {
+    const timer = setTimeout(() => controllers[i].abort(), 9000);
+    return fetch(proxy + encodeURIComponent(urlStr), { signal: controllers[i].signal })
+      .then(async (res) => {
+        let json;
+        try {
+          json = await res.json();
+        } catch (e) {
+          throw new Error("Réponse invalide du proxy.");
+        }
+        if (!json.success) {
+          const err = new Error(json.error?.message || "Erreur inconnue.");
+          err.code = json.error?.code;
+          throw err;
+        }
+        return json;
+      })
+      .finally(() => clearTimeout(timer));
+  });
 
-      if (!json.success) {
-        const err = new Error(json.error?.message || "Erreur inconnue.");
-        err.code = json.error?.code;
-        throw err;
-      }
-      return json;
-    } catch (e) {
-      lastErr = e;
-      // Petite pause avant de retenter avec le proxy suivant
-      if (attempt < retries) await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
-    }
+  try {
+    const json = await Promise.any(attempts);
+    // On n'a plus besoin des autres proxys encore en vol : on les annule.
+    controllers.forEach(c => c.abort());
+    cacheWrite(cacheKey, json);
+    return json;
+  } catch (aggregateErr) {
+    const errors = (aggregateErr && aggregateErr.errors) || [aggregateErr];
+    const lastErr = errors[errors.length - 1];
+    const err = new Error(lastErr?.message || "Source indisponible. Réessaie dans un instant.");
+    err.code = lastErr?.code || "source_unavailable";
+    throw err;
   }
-
-  const err = new Error(lastErr?.message || "Source indisponible. Réessaie dans un instant.");
-  err.code = lastErr?.code || "source_unavailable";
-  throw err;
 }
 
 /* =========================================================

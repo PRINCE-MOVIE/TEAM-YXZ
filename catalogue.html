@@ -36,6 +36,7 @@
     let currentTab = validTabs.includes(tabParam) ? tabParam : "movies";
     let currentPage = 1;
     let hasContent = false; // vrai dès qu'une grille de films est affichée
+    let requestSeq = 0; // évite qu'une vieille requête (proxy lent) écrase l'onglet/page actuel
 
     const TITLES = {
       movies: "Films", series: "Séries", anime: "Animés",
@@ -66,6 +67,7 @@
     async function loadTab() {
       const app = document.getElementById("app");
       const pag = document.getElementById("pagination");
+      const myRequestSeq = ++requestSeq;
 
       // On ne montre le loader plein écran que si rien n'est encore affiché.
       // Sinon (ex: changement de page sur un onglet déjà chargé), on garde
@@ -77,10 +79,16 @@
 
       try {
         const json = await api(`/${currentTab}`, { page: currentPage });
+        // Si l'utilisateur a changé d'onglet ou de page pendant que cette
+        // requête était en cours, on l'ignore : sans ça, une réponse d'un
+        // onglet précédent (proxy CORS lent) peut arriver après et écraser
+        // l'onglet actuellement affiché avec les mauvais films.
+        if (myRequestSeq !== requestSeq) return;
         hasContent = true;
         renderGrid(json.data);
         renderPagination(json.meta);
       } catch (e) {
+        if (myRequestSeq !== requestSeq) return;
         console.error("Erreur :", e);
         if (hasContent) {
           // On garde les films déjà affichés, on prévient juste avec un bandeau
