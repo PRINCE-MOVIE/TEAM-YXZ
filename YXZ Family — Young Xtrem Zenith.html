@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>YXZ Family — Young Xtrem Zenith</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f6fb;--card:#fff;--ink:#0a1128;--mute:#58627a;--line:#e0e5f0;--blue:#2f6bff;--blueh:#1f56db;--deep:#070d24;--soft:#ecf2ff;--gold:#d9a93f;--red:#d92d4b;--sh:0 1px 2px rgba(10,17,40,.05),0 12px 32px rgba(10,17,40,.07);
+--head:'Sora','Segoe UI',system-ui,sans-serif;--font:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0f1c;--card:#141a2b;--ink:#eef1f8;--mute:#a1abc2;--line:#262e45;--soft:#162342;--blue:#5b8cff;--sh:0 12px 32px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--bg:#0b0f1c;--card:#141a2b;--ink:#eef1f8;--mute:#a1abc2;--line:#262e45;--soft:#162342;--blue:#5b8cff;--sh:0 12px 32px rgba(0,0,0,.4)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px;width:100%}
+h1,h2,h3{font-family:var(--head);margin:0}
+.top{background:var(--deep);color:#fff;border-bottom:1px solid rgba(255,255,255,.08)}
+.bar{max-width:960px;margin:0 auto;padding:10px 12px;display:flex;align-items:center;gap:8px}
+.menu{width:46px;height:46px;border:0;border-radius:12px;background:transparent;display:grid;place-items:center;cursor:pointer}
+.menu:hover{background:rgba(255,255,255,.1)}
+.menu i{display:block;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 -9px 0 #fff,0 9px 0 #fff}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--head);font-weight:700;font-size:17px;letter-spacing:.02em}
+.mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(145deg,#4a7dff,#2347c8);display:grid;place-items:center}
+button:focus-visible,a:focus-visible{outline:3px solid #8db4ff;outline-offset:2px}
+.scrim{position:fixed;inset:0;background:rgba(5,10,25,.55);z-index:20}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:min(310px,84vw);background:var(--card);color:var(--ink);z-index:21;padding:calc(env(safe-area-inset-top,0px) + 18px) 14px 20px;box-shadow:8px 0 30px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:4px;transform:translateX(-102%);transition:transform .22s ease;visibility:hidden}
+.drawer.open{transform:none;visibility:visible}
+.drawer .dh{display:flex;align-items:center;gap:10px;padding:4px 10px 16px;margin-bottom:6px;border-bottom:1px solid var(--line);font-family:var(--head);font-weight:700}
+.drawer a{display:block;padding:13px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:600}
+.drawer a:hover,.drawer a.on{background:var(--soft);color:var(--blue)}
+.hero{position:relative;overflow:hidden;background:radial-gradient(80% 120% at 85% 0%,#1b3fa8 0%,transparent 60%),linear-gradient(165deg,#070d24,#0c1a4d);color:#fff}
+.hero svg.art{position:absolute;right:-90px;top:50%;width:420px;height:420px;transform:translateY(-50%);opacity:.55}
+.hbody{position:relative;padding:64px 0 76px;max-width:600px}
+.kick{display:inline-block;padding:6px 12px;border:1px solid rgba(255,255,255,.25);border-radius:999px;font-size:13px;font-weight:600;color:#cfdcff;margin-bottom:20px}
+.hbody h1{font-size:clamp(38px,9.5vw,64px);line-height:1.04;letter-spacing:-.035em;font-weight:800}
+.hbody p{margin:18px 0 0;font-size:18px;color:rgba(255,255,255,.8);max-width:48ch}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:10px;padding:14px 24px;font:inherit;font-weight:600;text-decoration:none;cursor:pointer;background:var(--blue);color:#fff;min-height:50px;transition:background .15s}
+.btn:hover{background:var(--blueh)}
+.btn.w{background:#fff;color:#0a1128}.btn.w:hover{background:#e6eeff}
+.btn.o{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.45)}.btn.o:hover{background:rgba(255,255,255,.1)}
+main{flex:1}
+.page{padding:44px 0 8px}
+.sec{padding:48px 0 4px}
+.ey{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:8px}
+h2{font-size:clamp(26px,5.5vw,34px);letter-spacing:-.025em;line-height:1.15;font-weight:700}
+.sub{margin:10px 0 28px;color:var(--mute);max-width:58ch}
+.tri{display:grid;gap:12px;grid-template-columns:repeat(3,1fr)}
+.fact{text-align:center;padding:26px 8px;border-radius:14px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh)}
+.fact .ic{width:60px;height:60px;border-radius:14px;background:var(--soft);color:var(--blue);display:grid;place-items:center;font-family:var(--head);font-weight:800;font-size:28px;margin:0 auto}
+.fact h3{font-size:16px;letter-spacing:-.01em}
+.fact p{margin:6px 0 0;color:var(--mute);font-size:15px}
+.cta{margin:56px 0 8px;padding:32px 26px;border-radius:18px;background:linear-gradient(135deg,#0c1a4d,#2347c8);color:#fff;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.cta h3{font-size:clamp(22px,5vw,28px);letter-spacing:-.02em}
+.cta p{margin:6px 0 0;color:rgba(255,255,255,.8)}
+.grp{font-size:13px;font-weight:600;color:var(--mute);margin:30px 0 12px;display:flex;align-items:center;gap:12px}
+.grp::after{content:"";flex:1;height:1px;background:var(--line)}
+.lead{display:flex;align-items:center;gap:16px;padding:18px;border-radius:14px;background:var(--card);border:1px solid var(--line);box-shadow:var(--sh)}
+.mono{width:56px;height:56px;border-radius:12px;background:var(--soft);color:var(--blue);display:grid;place-items:center;font-family:var(--head);font-weight:800;font-size:22px;flex:none}
+.lead .r{font-size:13px;font-weight:600;color:var(--blue)}
+.lead .n{font-family:var(--head);font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.lead.pdg{background:linear-gradient(135deg,#070d24,#10296b);border-color:transparent;color:#fff;padding:26px}
+.lead.pdg .mono{width:72px;height:72px;font-size:30px;background:rgba(255,255,255,.1);color:var(--gold);border:1.5px solid var(--gold)}
+.lead.pdg .r{color:var(--gold)}
+.lead.pdg .n{font-size:clamp(28px,7vw,40px)}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+.steps{display:grid;gap:10px;grid-template-columns:repeat(3,1fr);margin-bottom:22px}
+.st{padding:14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:14px;font-weight:600;line-height:1.3}
+.st b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:13px;margin-bottom:8px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--sh);padding:22px}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:16px}
+legend{padding:0;font-family:var(--head);font-weight:700;font-size:17px;margin-bottom:14px}
+form{display:grid;gap:26px}
+.f{display:flex;flex-direction:column;gap:6px}
+label{font-weight:600;font-size:14px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;width:100%;min-height:50px}
+textarea{min-height:110px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);background:var(--card);box-shadow:0 0 0 4px rgba(47,107,255,.18)}
+.bad{border-color:var(--red)!important;box-shadow:0 0 0 4px rgba(217,45,75,.14)!important}
+.err{min-height:1.3em;margin:0;color:var(--red);font-weight:600}
+.note{margin:0;text-align:center;color:var(--mute);font-size:14px}
+.send{width:100%;font-size:17px;min-height:56px;background:#1fa855}.send:hover{background:#188f47}
+footer{margin-top:60px;background:var(--deep);color:rgba(255,255,255,.7);font-size:14px}
+.fg{display:grid;gap:26px;grid-template-columns:1.4fr 1fr;padding:38px 0 26px}
+footer .brand{color:#fff;margin-bottom:10px}
+footer p{margin:0;max-width:40ch}
+footer a{display:block;color:rgba(255,255,255,.75);text-decoration:none;padding:4px 0}
+footer a:hover{color:#fff}
+.fb{border-top:1px solid rgba(255,255,255,.1);padding:16px 0 26px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+footer b{color:#fff}
+@media(min-width:640px){.fgrid{grid-template-columns:1fr 1fr}.box{padding:34px}.ff{grid-template-columns:1fr 1fr}.full{grid-column:1/-1}}
+@media(max-width:700px){.hero svg.art{opacity:.25;right:-170px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top"><div class="bar">
+<button class="menu" id="mb" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="dr"><i></i></button>
+<div class="brand"><span class="mark"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19 12 5l8 14"/><path d="M8.5 19h7"/></svg></span>YXZ Family</div>
+</div></div>
+
+<div class="scrim" id="sc" hidden></div>
+<aside class="drawer" id="dr" aria-label="Menu">
+<div class="dh"><span class="mark" style="background:var(--blue)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19 12 5l8 14"/><path d="M8.5 19h7"/></svg></span>YXZ Family</div>
+<a href="#accueil" data-p="accueil">Accueil</a>
+<a href="#leaders" data-p="leaders">Leaders</a>
+<a href="#rejoindre" data-p="rejoindre">Rejoindre la team</a>
+</aside>
+
+<main>
+<div id="accueil" class="view">
+<div class="hero">
+<svg class="art" viewBox="0 0 400 400" fill="none" stroke="#6f93ff" stroke-width="1.2" aria-hidden="true"><circle cx="200" cy="200" r="190"/><circle cx="200" cy="200" r="140"/><circle cx="200" cy="200" r="90"/><path d="M90 290 200 100l110 190" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M150 290h100" stroke="#fff" stroke-width="3"/></svg>
+<div class="wrap"><div class="hbody">
+<span class="kick">Team officielle</span>
+<h1>Young Xtrem Zenith</h1>
+<p>YXZ Family est une team de jeunes qui visent le sommet, ensemble.</p>
+<div class="row"><a class="btn w" href="#rejoindre">Rejoindre la team</a><a class="btn o" href="#leaders">Voir les leaders</a></div>
+</div></div></div>
+<div class="wrap">
+<div class="sec">
+<div class="ey">À propos</div>
+<h2>Ce que signifie YXZ</h2>
+<p class="sub">YXZ signifie Young Xtrem Zenith.</p>
+<div class="cta"><div><h3>Prêt à nous rejoindre ?</h3><p>Remplis le questionnaire en quelques minutes.</p></div><a class="btn w" href="#rejoindre">Rejoindre la team</a></div>
+</div></div>
+</div>
+
+<div id="leaders" class="view" hidden><div class="wrap"><div class="page">
+<div class="ey">L’équipe dirigeante</div>
+<h2>Nos leaders</h2>
+<p class="sub">Les personnes qui dirigent et font avancer YXZ.</p>
+<div class="grp">Direction</div>
+<div class="lead pdg"><div class="mono">P</div><div><div class="r">PDG</div><div class="n">PrinceTech</div></div></div>
+<div class="grp">Directeurs généraux</div>
+<div class="grid">
+<div class="lead"><div class="mono">Y</div><div><div class="r">DG</div><div class="n">Yakuza</div></div></div>
+<div class="lead"><div class="mono">S</div><div><div class="r">DG</div><div class="n">Scott Adkins</div></div></div>
+<div class="lead"><div class="mono">R</div><div><div class="r">DG</div><div class="n">Romeo</div></div></div>
+<div class="lead"><div class="mono">B</div><div><div class="r">DG</div><div class="n">Blood</div></div></div>
+</div>
+<div class="grp">Édition</div>
+<div class="grid"><div class="lead"><div class="mono">R</div><div><div class="r">Éditeur</div><div class="n">Rolph</div></div></div></div>
+</div></div></div>
+
+<div id="rejoindre" class="view" hidden><div class="wrap"><div class="page">
+<div class="ey">Recrutement</div>
+<h2>Rejoindre la team</h2>
+<p class="sub">Trois étapes, moins de cinq minutes.</p>
+<div class="steps"><div class="st"><b>1</b>Remplis le questionnaire</div><div class="st"><b>2</b>Envoie-le sur WhatsApp</div><div class="st"><b>3</b>L’équipe te répond</div></div>
+<div class="box">
+<form id="f" novalidate>
+<fieldset class="ff"><legend class="full">Tes coordonnées</legend>
+<div class="f"><label for="nom">Nom WhatsApp *</label><input id="nom" autocomplete="name"></div>
+<div class="f"><label for="num">Numéro WhatsApp *</label><input id="num" type="tel" autocomplete="tel" placeholder="+1 809 000 0000"></div>
+<div class="f"><label for="pseudo">Pseudo *</label><input id="pseudo"></div>
+<div class="f"><label for="age">Âge *</label><input id="age" type="number" min="10" max="99" inputmode="numeric"></div>
+<div class="f full"><label for="pays">Pays et ville *</label><input id="pays" autocomplete="country-name"></div>
+</fieldset>
+<fieldset class="ff"><legend class="full">Ton profil</legend>
+<div class="f"><label for="role">Poste souhaité *</label><select id="role"><option value="">Choisir</option><option>Membre</option><option>Éditeur vidéo</option><option>Graphiste</option><option>Développeur</option><option>Community manager</option><option>Autre</option></select></div>
+<div class="f"><label for="dispo">Disponibilité *</label><select id="dispo"><option value="">Choisir</option><option>Tous les jours</option><option>Quelques fois par semaine</option><option>Week-ends seulement</option></select></div>
+<div class="f full"><label for="exp">Expérience</label><input id="exp" placeholder="Équipes ou projets précédents"></div>
+<div class="f full"><label for="why">Pourquoi veux-tu rejoindre YXZ ? *</label><textarea id="why"></textarea></div>
+</fieldset>
+<div><p class="err" id="err" role="alert"></p>
+<button class="btn send" type="submit">Envoyer sur WhatsApp</button>
+<p class="note" style="margin-top:12px">WhatsApp s’ouvre avec ton message déjà rempli.</p></div>
+</form>
+</div></div></div></div>
+</main>
+
+<footer><div class="wrap">
+<div class="fg"><div><div class="brand">YXZ Family</div><p>Young Xtrem Zenith, une team de jeunes qui visent le sommet, ensemble.</p></div>
+<div><a href="#accueil">Accueil</a><a href="#leaders">Leaders</a><a href="#rejoindre">Rejoindre la team</a></div></div>
+<div class="fb"><span>© 2026 YXZ Family</span><span>Made in by <b>Prince Tech</b></span></div>
+</div></footer>
+
+<script>
+var pages=["accueil","leaders","rejoindre"],mb=document.getElementById("mb"),dr=document.getElementById("dr"),sc=document.getElementById("sc");
+function openM(o){dr.classList.toggle("open",o);sc.hidden=!o;mb.setAttribute("aria-expanded",o);mb.setAttribute("aria-label",o?"Fermer le menu":"Ouvrir le menu");}
+function route(){var h=(location.hash||"").slice(1);if(pages.indexOf(h)<0)h="accueil";
+pages.forEach(function(p){document.getElementById(p).hidden=(p!==h);});
+document.querySelectorAll(".drawer a").forEach(function(a){a.classList.toggle("on",a.dataset.p===h);});
+openM(false);window.scrollTo(0,0);}
+mb.addEventListener("click",function(){openM(!dr.classList.contains("open"));});
+sc.addEventListener("click",function(){openM(false);});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")openM(false);});
+window.addEventListener("hashchange",route);route();
+
+var NUM="18494993874";
+document.getElementById("f").addEventListener("submit",function(e){
+e.preventDefault();
+var ids=["nom","num","pseudo","age","pays","role","dispo","why"],ok=true;
+ids.forEach(function(i){var el=document.getElementById(i),v=el.value.trim(),bad=!v;
+if(i==="num"&&v.replace(/\D/g,"").length<7)bad=true;
+el.classList.toggle("bad",bad);if(bad)ok=false;});
+var err=document.getElementById("err");
+if(!ok){err.textContent="Complète tous les champs marqués d’une étoile, avec un numéro valide.";return;}
+err.textContent="";
+var g=function(i){return document.getElementById(i).value.trim()||"—";};
+var msg="Demande pour rejoindre YXZ (Young Xtrem Zenith)\n\nNom WhatsApp : "+g("nom")+"\nNuméro : "+g("num")+"\nPseudo : "+g("pseudo")+"\nÂge : "+g("age")+"\nPays / ville : "+g("pays")+"\nPoste souhaité : "+g("role")+"\nDisponibilité : "+g("dispo")+"\nExpérience : "+g("exp")+"\nMotivation : "+g("why");
+var url="https://wa.me/"+NUM+"?text="+encodeURIComponent(msg);
+var w=null;try{w=window.open(url,"_blank");}catch(x){}
+if(!w){location.href=url;}
+});
+</script>
+</body>
+</html>
